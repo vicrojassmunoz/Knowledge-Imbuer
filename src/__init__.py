@@ -1,1 +1,2 @@
-from src.config import setup_logging, HN_QUERY, HN_URL, HN_MIN_POINTS, RSS_SOURCES
+from src.config import setup_logging, HN_QUERY, HN_URL, HN_MIN_POINTS, RSS_SOURCES, HISTORY_PATH, MAX_HISTORY
+from src.fetcher import NewsItem

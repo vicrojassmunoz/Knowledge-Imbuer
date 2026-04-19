@@ -14,6 +14,9 @@ HN_QUERY = _config["hn"]["query"]
 HN_URL = _config["hn"]["url"]
 HN_MIN_POINTS = _config["hn"]["min_points"]
 
+HISTORY_PATH = Path(__file__).parent.parent / _config["history"]["path"]
+MAX_HISTORY = _config["history"]["max_entries"]
+
 def setup_logging() -> None:
     logging.basicConfig(
         level=logging.INFO,

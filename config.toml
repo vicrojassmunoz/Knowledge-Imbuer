@@ -10,3 +10,7 @@ sources = [
 query = "AI ML machine learning LLM"
 min_points = 50
 url = "https://hn.algolia.com/api/v1/search"
+
+[history]
+max_entries = 500
+path = "data/history.json"
