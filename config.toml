@@ -17,6 +17,7 @@ path = "data/history.json"
 
 [filter]
 max_input_items = 50
+max_workers = 3
 min_score = 6
 temperature = 0.1
 max_tokens = 1024

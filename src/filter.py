@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from groq import Groq
 
-from src.config import GROQ_API_KEY, FILTER_MODEL, SYSTEM_PROMPT, FILTER_TEMPERATURE, FILTER_MAX_TOKENS, FILTER_MAX_INPUT, FILTER_MIN_SCORE
+from src.config import GROQ_API_KEY, FILTER_MODEL, SYSTEM_PROMPT, FILTER_TEMPERATURE, FILTER_MAX_TOKENS, FILTER_MAX_INPUT, FILTER_MIN_SCORE, FILTER_MAX_WORKERS
 from src.fetcher import NewsItem
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ def filter_all(items: list[NewsItem]) -> list[NewsItem]:
     limited = items[:FILTER_MAX_INPUT]
     results = []
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=FILTER_MAX_WORKERS) as executor:
         futures = {executor.submit(filter_item, item): item for item in limited}
         for future in as_completed(futures):
             result = future.result()

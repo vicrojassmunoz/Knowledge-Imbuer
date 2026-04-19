@@ -22,6 +22,7 @@ HISTORY_PATH = Path(__file__).parent.parent / _config["history"]["path"]
 MAX_HISTORY = _config["history"]["max_entries"]
 
 FILTER_MAX_INPUT = _config["filter"]["max_input_items"]
+FILTER_MAX_WORKERS = _config["filter"]["max_workers"]
 FILTER_MIN_SCORE = _config["filter"]["min_score"]
 _active_model_key = _config["models"]["active"]
 FILTER_MODEL = _config["models"][_active_model_key]
