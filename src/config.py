@@ -21,6 +21,8 @@ HN_MIN_POINTS = _config["hn"]["min_points"]
 HISTORY_PATH = Path(__file__).parent.parent / _config["history"]["path"]
 MAX_HISTORY = _config["history"]["max_entries"]
 
+FILTER_MAX_INPUT = _config["filter"]["max_input_items"]
+FILTER_MIN_SCORE = _config["filter"]["min_score"]
 _active_model_key = _config["models"]["active"]
 FILTER_MODEL = _config["models"][_active_model_key]
 FILTER_TEMPERATURE = _config["filter"]["temperature"]

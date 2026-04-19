@@ -16,6 +16,8 @@ max_entries = 500
 path = "data/history.json"
 
 [filter]
+max_input_items = 50
+min_score = 6
 temperature = 0.1
 max_tokens = 1024
 system_prompt = """

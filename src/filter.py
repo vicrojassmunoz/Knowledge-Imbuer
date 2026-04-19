@@ -1,9 +1,10 @@
 import logging
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from groq import Groq
 
-from src.config import GROQ_API_KEY, FILTER_MODEL, SYSTEM_PROMPT, FILTER_TEMPERATURE, FILTER_MAX_TOKENS
+from src.config import GROQ_API_KEY, FILTER_MODEL, SYSTEM_PROMPT, FILTER_TEMPERATURE, FILTER_MAX_TOKENS, FILTER_MAX_INPUT, FILTER_MIN_SCORE
 from src.fetcher import NewsItem
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ def filter_item(item:NewsItem) -> NewsItem | None:
         logger.debug(f"Raw message: {raw}")
         result = json.loads(raw)
 
-        if result.get("keep"):
+        if result.get("keep") and result.get("score", 0 ) >= FILTER_MIN_SCORE:
             item.one_liner = result.get("one_liner", "")
             logger.info(f"KEPT [{result.get('score')}/10] {item.title[:60]}")
             return item
@@ -45,13 +46,15 @@ def filter_item(item:NewsItem) -> NewsItem | None:
 
 
 def filter_all(items: list[NewsItem]) -> list[NewsItem]:
+    limited = items[:FILTER_MAX_INPUT]
     results = []
 
-    for item in items:
-        filtered = filter_item(item)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(filter_item, item): item for item in limited}
+        for future in as_completed(futures):
+            result = future.result()
+            if result:
+                results.append(result)
 
-        if filtered:
-            results.append(filtered)
-
-    logger.info(f"Filter complete — {len(results)}/{len(items)} items kept")
+    logger.info(f"Filter complete — {len(results)}/{len(limited)} items kept")
     return results

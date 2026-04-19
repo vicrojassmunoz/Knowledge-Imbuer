@@ -2,6 +2,7 @@ import hashlib
 import httpx
 import feedparser
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from pydantic import BaseModel, computed_field
 
@@ -88,10 +89,12 @@ def fetch_hn(query: str = HN_QUERY, min_points: int = HN_MIN_POINTS) -> list[New
 def fetch_all() -> list[NewsItem]:
     all_items = []
 
-    for url, name in RSS_SOURCES:
-        all_items.extend(fetch_rss(url, name))
+    with ThreadPoolExecutor(max_workers=len(RSS_SOURCES) + 1) as executor:
+        futures = [executor.submit(fetch_rss, url, name) for url, name in RSS_SOURCES]
+        futures.append(executor.submit(fetch_hn))
 
-    all_items.extend(fetch_hn())
+        for future in as_completed(futures):
+            all_items.extend(future.result())
 
     logger.info(f"Total items fetched: {len(all_items)}")
     return all_items
