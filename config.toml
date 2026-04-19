@@ -1,0 +1,12 @@
+[rss_sources]
+sources = [
+    { url = "https://arxiv.org/rss/cs.AI", name = "Arxiv CS.AI" },
+    { url = "https://arxiv.org/rss/cs.LG", name = "Arxiv CS.LG" },
+    { url = "https://huggingface.co/blog/feed.xml", name = "HuggingFace Blog" },
+    { url = "https://paperswithcode.com/feeds/latest", name = "Papers With Code" },
+]
+
+[hn]
+query = "AI ML machine learning LLM"
+min_points = 50
+url = "https://hn.algolia.com/api/v1/search"
