@@ -5,7 +5,7 @@ import logging
 
 from pydantic import BaseModel, computed_field
 
-from src import HN_QUERY, HN_MIN_POINTS, HN_URL, RSS_SOURCES
+from src.config import HN_QUERY, HN_MIN_POINTS, HN_URL, RSS_SOURCES
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ class NewsItem(BaseModel):
     source: str
     summary: str=""
     published: str = ""
+    one_liner: str = ""
 
     @computed_field
     @property

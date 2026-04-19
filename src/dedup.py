@@ -1,7 +1,8 @@
 import json
 import logging
 
-from src import NewsItem, HISTORY_PATH, MAX_HISTORY
+from src.config import HISTORY_PATH, MAX_HISTORY
+from src.fetcher import NewsItem
 
 logger = logging.getLogger(__name__)
 
