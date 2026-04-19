@@ -27,6 +27,11 @@ FILTER_TEMPERATURE = _config["filter"]["temperature"]
 FILTER_MAX_TOKENS = _config["filter"]["max_tokens"]
 SYSTEM_PROMPT = _config["filter"]["system_prompt"]
 
+SMTP_PORT = _config["email"]["port"]
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+EMAIL_FROM = os.getenv("EMAIL_FROM")
+EMAIL_TO = os.getenv("EMAIL_TO")
+
 # LOGGER
 def setup_logging() -> None:
     logging.basicConfig(

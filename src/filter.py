@@ -8,7 +8,7 @@ from src.fetcher import NewsItem
 
 logger = logging.getLogger(__name__)
 
-client = Groq(api_key=GROQ_API_KEY)
+client = Groq(api_key=GROQ_API_KEY) # TODO: Interface for clients
 
 
 def filter_item(item:NewsItem) -> NewsItem | None:
