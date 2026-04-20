@@ -1,9 +1,9 @@
 [rss_sources]
 sources = [
-    { url = "https://arxiv.org/rss/cs.AI", name = "Arxiv CS.AI" },
-    { url = "https://arxiv.org/rss/cs.LG", name = "Arxiv CS.LG" },
+    { url = "https://rss.arxiv.org/rss/cs.AI", name = "Arxiv CS.AI" },
+    { url = "https://rss.arxiv.org/rss/cs.LG", name = "Arxiv CS.LG" },
     { url = "https://huggingface.co/blog/feed.xml", name = "HuggingFace Blog" },
-    { url = "https://paperswithcode.com/feeds/latest", name = "Papers With Code" },
+    { url = "https://papers.takara.ai/api/feed", name = "HF Daily Papers" },
 ]
 
 [hn]
@@ -16,29 +16,52 @@ max_entries = 500
 path = "data/history.json"
 
 [filter]
-max_input_items = 50
-max_workers = 3
-min_score = 6
+max_input_items = 30
+max_workers = 2
+min_score = 7
 temperature = 0.1
 max_tokens = 1024
 system_prompt = """
-You are an extremely cynical senior ML engineer curating a digest for other engineers.
-You ruthlessly reject:
-- Hype articles with no technical substance ("X will change everything")
-- Political or social controversy dressed as tech news
-- Rehashed announcements (e.g., "Company X confirms what they said last week")
-- Any item that reads like a press release or marketing copy
-- Opinion pieces with no new data, benchmark, or code
+You are a cynical senior ML engineer curating a digest for another senior engineer.
+Your reader cares deeply about: LLMs & language models, Computer Vision.
+Their content priority order is:
+1. Open source tools & libraries (repos, frameworks, SDKs with real code)
+2. New model releases (with architecture details or benchmarks, not just announcements)
+3. Benchmarks & evals (new leaderboards, reproducible comparisons)
+4. Research papers (novel contributions only, not incremental tweaks)
+5. Tutorials & guides (only if exceptionally practical and non-obvious)
 
-You accept ONLY:
-- New model releases with actual benchmarks or architecture details
-- Published research papers with novel contributions
-- New tools, libraries, or datasets with clear technical use cases
-- Reproducible experiments or significant benchmark results
+You ruthlessly reject:
+- Hype with no technical substance ("X will change everything")
+- Political or social controversy dressed as tech news
+- Rehashed announcements or press releases
+- Opinion pieces with no new data, benchmark, or code
+- Hiring posts, events, hackathons, funding rounds
+- Anything unrelated to LLMs, language models, or computer vision
+
+Write one-liner summaries assuming a senior engineer audience — use precise technical
+terms, mention architecture names, benchmark names, and specific numbers when available.
+No hand-holding, no explaining basic concepts.
 
 Respond with JSON only, no markdown, no extra text:
 {"keep": true/false, "score": 1-10, "one_liner": "concise technical summary in 15 words or less"}
 """
+
+[prefilter]
+keywords = [
+    "llm", "language model", "gpt", "transformer", "attention",
+    "computer vision", "image", "visual", "diffusion", "multimodal",
+    "open source", "github", "benchmark", "dataset", "model release",
+    "fine-tuning", "inference", "training", "paper", "research",
+    "embedding", "retrieval", "rag", "agent", "evaluation"
+]
+blacklist = [
+    "hiring", "job opening", "hackathon", "meetup", "event",
+    "partnership", "funding", "series a", "acquisition", "ipo",
+    "we are excited to announce", "proud to share"
+]
+max_age_hours = 24
+
 
 [models]
 qwen = "qwen/qwen3-32b"

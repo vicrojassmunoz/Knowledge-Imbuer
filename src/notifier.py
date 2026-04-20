@@ -1,3 +1,4 @@
+import html
 import logging
 import smtplib
 
@@ -26,8 +27,8 @@ def _format_telegram(items: list[NewsItem]) -> str:
 
     for i, item in enumerate(items,1 ):
         lines.append(
-            f"{i}. <a href='{item.url}'>{item.title}</a>\n"
-            f"<i>{item.one_liner}</i>\n"
+            f"{i}. <a href='{item.url}'>{html.escape(item.title)}</a>\n"
+            f"<i>{html.escape(item.one_liner)}</i>\n"
             f"<code>{item.source}</code>\n"
         )
 
@@ -75,7 +76,7 @@ def _format_email(items: list[NewsItem]) -> str:
         <h2 style="color: #333;">Knowledge Imbuer — Daily Digest</h2>
         <table width="100%" cellpadding="0" cellspacing="0">{rows}</table>
         <p style="color: #999; font-size: 11px; margin-top: 20px;">
-            Powered by Prometheus
+            Powered by Athena
         </p>
     </body></html>        
     """
