@@ -3,7 +3,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.fetcher import NewsItem
-from src.notifier import notify_all, send_email, send_telegram, _format_telegram, _format_email
+from src.notifier import (
+    BaseNotifier,
+    TelegramNotifier,
+    ResendEmailNotifier,
+    notify_all,
+)
 
 
 def _item(title="LLM paper", url="https://example.com", source="Test", one_liner="Summary here"):
@@ -12,23 +17,23 @@ def _item(title="LLM paper", url="https://example.com", source="Test", one_liner
 
 # ── Formatters ────────────────────────────────────────────────────────────────
 
-class TestFormatTelegram:
+class TestTelegramNotifierFormat:
     def test_contains_item_title(self):
-        msg = _format_telegram([_item(title="My Article")])
+        msg = TelegramNotifier().format([_item(title="My Article")])
         assert "My Article" in msg
 
     def test_contains_item_url(self):
-        msg = _format_telegram([_item(url="https://example.com/specific")])
+        msg = TelegramNotifier().format([_item(url="https://example.com/specific")])
         assert "https://example.com/specific" in msg
 
     def test_escapes_html_in_title(self):
-        msg = _format_telegram([_item(title="A <b>bold</b> claim")])
+        msg = TelegramNotifier().format([_item(title="A <b>bold</b> claim")])
         assert "<b>bold</b>" not in msg
         assert "&lt;b&gt;" in msg
 
     def test_numbers_items(self):
         items = [_item(url=f"https://example.com/{i}") for i in range(3)]
-        msg = _format_telegram(items)
+        msg = TelegramNotifier().format(items)
         assert "1." in msg
         assert "2." in msg
         assert "3." in msg
@@ -37,78 +42,78 @@ class TestFormatTelegram:
         # URLs with & in query params caused a 400 Bad Request from Telegram
         # because the HTML parser rejected unescaped & inside href attributes.
         url = "https://arxiv.org/search/?searchtype=all&query=qwen3&start=0"
-        msg = _format_telegram([_item(url=url)])
+        msg = TelegramNotifier().format([_item(url=url)])
         assert "&query=" not in msg
         assert "&amp;query=" in msg
 
-    def test_send_telegram_passes_with_ampersand_url(self):
-        # Regression: send_telegram must not raise or return False when the URL
-        # contains & characters (previously caused Telegram 400 Bad Request).
+    def test_notify_passes_with_ampersand_url(self):
+        # Regression: TelegramNotifier must not raise or return False when the
+        # URL contains & characters (previously caused Telegram 400 Bad Request).
         url = "https://arxiv.org/search/?searchtype=all&query=qwen3&start=0"
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
         with patch("src.notifier.httpx.post", return_value=mock_resp) as mock_post:
-            result = send_telegram([_item(url=url)])
+            result = TelegramNotifier().notify([_item(url=url)])
         assert result is True
         payload = mock_post.call_args[1]["json"]
         assert "&amp;" in payload["text"]
         assert "&query=" not in payload["text"]
 
 
-class TestFormatEmail:
+class TestResendEmailNotifierFormat:
     def test_contains_item_title(self):
-        html = _format_email([_item(title="Great Paper")])
-        assert "Great Paper" in html
+        output = ResendEmailNotifier().format([_item(title="Great Paper")])
+        assert "Great Paper" in output
 
     def test_contains_item_url(self):
-        html = _format_email([_item(url="https://papers.example.com")])
-        assert "https://papers.example.com" in html
+        output = ResendEmailNotifier().format([_item(url="https://papers.example.com")])
+        assert "https://papers.example.com" in output
 
     def test_is_valid_html_structure(self):
-        html = _format_email([_item()])
-        assert "<html>" in html
-        assert "</html>" in html
+        output = ResendEmailNotifier().format([_item()])
+        assert "<html>" in output
+        assert "</html>" in output
 
 
-# ── send_telegram ─────────────────────────────────────────────────────────────
+# ── TelegramNotifier ──────────────────────────────────────────────────────────
 
-class TestSendTelegram:
+class TestTelegramNotifier:
     def test_returns_true_on_success(self):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
         with patch("src.notifier.httpx.post", return_value=mock_resp):
-            assert send_telegram([_item()]) is True
+            assert TelegramNotifier().notify([_item()]) is True
 
     def test_posts_to_correct_telegram_endpoint(self):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
         with patch("src.notifier.httpx.post", return_value=mock_resp) as mock_post:
-            send_telegram([_item()])
+            TelegramNotifier().notify([_item()])
         url_called = mock_post.call_args[0][0]
         assert "api.telegram.org" in url_called
         assert "sendMessage" in url_called
 
     def test_returns_false_on_http_error(self):
         with patch("src.notifier.httpx.post", side_effect=Exception("connection refused")):
-            assert send_telegram([_item()]) is False
+            assert TelegramNotifier().notify([_item()]) is False
 
     def test_returns_false_when_raise_for_status_fails(self):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.side_effect = Exception("403 Forbidden")
         with patch("src.notifier.httpx.post", return_value=mock_resp):
-            assert send_telegram([_item()]) is False
+            assert TelegramNotifier().notify([_item()]) is False
 
 
-# ── send_email ────────────────────────────────────────────────────────────────
+# ── ResendEmailNotifier ───────────────────────────────────────────────────────
 
-class TestSendEmail:
+class TestResendEmailNotifier:
     def test_returns_true_on_success(self):
         with patch("src.notifier.resend.Emails.send", return_value={"id": "abc"}):
-            assert send_email([_item()]) is True
+            assert ResendEmailNotifier().notify([_item()]) is True
 
     def test_calls_resend_with_correct_fields(self):
         with patch("src.notifier.resend.Emails.send") as mock_send:
-            send_email([_item()])
+            ResendEmailNotifier().notify([_item()])
         params = mock_send.call_args[0][0]
         assert "from" in params
         assert "to" in params
@@ -117,31 +122,37 @@ class TestSendEmail:
 
     def test_returns_false_on_resend_exception(self):
         with patch("src.notifier.resend.Emails.send", side_effect=Exception("API error")):
-            assert send_email([_item()]) is False
+            assert ResendEmailNotifier().notify([_item()]) is False
 
 
 # ── notify_all ────────────────────────────────────────────────────────────────
 
 class TestNotifyAll:
     def test_returns_true_when_both_succeed(self):
-        with patch("src.notifier.send_telegram", return_value=True), \
-             patch("src.notifier.send_email", return_value=True):
-            assert notify_all([_item()]) is True
+        mock_tg = MagicMock(spec=BaseNotifier)
+        mock_tg.notify.return_value = True
+        mock_email = MagicMock(spec=BaseNotifier)
+        mock_email.notify.return_value = True
+        assert notify_all([_item()], notifiers=[mock_tg, mock_email]) is True
 
     def test_returns_false_when_telegram_fails(self):
-        with patch("src.notifier.send_telegram", return_value=False), \
-             patch("src.notifier.send_email", return_value=True):
-            assert notify_all([_item()]) is False
+        mock_tg = MagicMock(spec=BaseNotifier)
+        mock_tg.notify.return_value = False
+        mock_email = MagicMock(spec=BaseNotifier)
+        mock_email.notify.return_value = True
+        assert notify_all([_item()], notifiers=[mock_tg, mock_email]) is False
 
     def test_returns_false_when_email_fails(self):
-        with patch("src.notifier.send_telegram", return_value=True), \
-             patch("src.notifier.send_email", return_value=False):
-            assert notify_all([_item()]) is False
+        mock_tg = MagicMock(spec=BaseNotifier)
+        mock_tg.notify.return_value = True
+        mock_email = MagicMock(spec=BaseNotifier)
+        mock_email.notify.return_value = False
+        assert notify_all([_item()], notifiers=[mock_tg, mock_email]) is False
 
     def test_returns_true_and_skips_send_when_empty(self):
-        with patch("src.notifier.send_telegram") as tg, \
-             patch("src.notifier.send_email") as em:
-            result = notify_all([])
+        mock_tg = MagicMock(spec=BaseNotifier)
+        mock_email = MagicMock(spec=BaseNotifier)
+        result = notify_all([], notifiers=[mock_tg, mock_email])
         assert result is True
-        tg.assert_not_called()
-        em.assert_not_called()
+        mock_tg.notify.assert_not_called()
+        mock_email.notify.assert_not_called()

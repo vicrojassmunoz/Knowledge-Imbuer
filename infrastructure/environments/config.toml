@@ -71,3 +71,6 @@ active = "qwen"
 
 [email]
 port = 465
+
+[logging]
+level = "INFO"

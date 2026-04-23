@@ -1,9 +1,9 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from src.fetcher import NewsItem
-from src.filter import _is_recent, filter_all, filter_item, prefilter
+from src.filter import _is_recent, prefilter, GroqFilter, filter_all
 from src.config import PREFILTER_MAX_AGE_HOURS
 
 
@@ -64,9 +64,9 @@ class TestPrefilter:
         assert prefilter([]) == []
 
 
-# ── filter_item ───────────────────────────────────────────────────────────────
+# ── GroqFilter.filter_item ────────────────────────────────────────────────────
 
-class TestFilterItem:
+class TestGroqFilterItem:
     def _mock_groq_response(self, content: str):
         choice = MagicMock()
         choice.message.content = content
@@ -79,8 +79,7 @@ class TestFilterItem:
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = self._mock_groq_response(payload)
 
-        with patch("src.filter.client", mock_client):
-            result = filter_item(_item(title="llm.c repo"))
+        result = GroqFilter(client=mock_client).filter_item(_item(title="llm.c repo"))
 
         assert result is not None
         assert result.one_liner == "Fast open-source LLM inference engine"
@@ -91,8 +90,7 @@ class TestFilterItem:
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = self._mock_groq_response(payload)
 
-        with patch("src.filter.client", mock_client):
-            result = filter_item(_item(title="Hiring ML engineers"))
+        result = GroqFilter(client=mock_client).filter_item(_item(title="Hiring ML engineers"))
 
         assert result is None
 
@@ -101,8 +99,7 @@ class TestFilterItem:
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = self._mock_groq_response(payload)
 
-        with patch("src.filter.client", mock_client):
-            result = filter_item(_item(title="Some weak post"))
+        result = GroqFilter(client=mock_client).filter_item(_item(title="Some weak post"))
 
         assert result is None
 
@@ -111,8 +108,7 @@ class TestFilterItem:
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = self._mock_groq_response(payload)
 
-        with patch("src.filter.client", mock_client):
-            result = filter_item(_item(title="Research paper"))
+        result = GroqFilter(client=mock_client).filter_item(_item(title="Research paper"))
 
         assert result is not None
         assert result.one_liner == "Good paper"
@@ -121,17 +117,16 @@ class TestFilterItem:
         mock_client = MagicMock()
         mock_client.chat.completions.create.side_effect = Exception("API error")
 
-        with patch("src.filter.client", mock_client):
-            result = filter_item(_item(title="anything"))
+        result = GroqFilter(client=mock_client).filter_item(_item(title="anything"))
 
         assert result is None
 
     def test_returns_none_on_invalid_json(self):
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = self._mock_groq_response("not json at all")
+        mock_client.chat.completions.create.return_value = MagicMock()
+        mock_client.chat.completions.create.return_value.choices[0].message.content = "not json at all"
 
-        with patch("src.filter.client", mock_client):
-            result = filter_item(_item(title="anything"))
+        result = GroqFilter(client=mock_client).filter_item(_item(title="anything"))
 
         assert result is None
 
@@ -157,8 +152,7 @@ class TestFilterAll:
         mock_client = MagicMock()
         mock_client.chat.completions.create.side_effect = side_effect
 
-        with patch("src.filter.client", mock_client):
-            results = filter_all([kept, dropped])
+        results = filter_all([kept, dropped], filter_=GroqFilter(client=mock_client))
 
         assert len(results) == 1
         assert results[0].title == kept.title
@@ -166,7 +160,8 @@ class TestFilterAll:
     def test_returns_empty_when_all_prefiltered_out(self, old_published):
         items = [_item(title="Sports news", published=old_published)]
         mock_client = MagicMock()
-        with patch("src.filter.client", mock_client):
-            results = filter_all(items)
+
+        results = filter_all(items, filter_=GroqFilter(client=mock_client))
+
         mock_client.chat.completions.create.assert_not_called()
         assert results == []

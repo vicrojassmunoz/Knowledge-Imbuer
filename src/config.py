@@ -41,8 +41,9 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 
 def setup_logging() -> None:
+    level = _config["logging"]["level"].upper()
     logging.basicConfig(
-        level=logging.INFO,
+        level=getattr(logging, level, logging.INFO),
         format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )

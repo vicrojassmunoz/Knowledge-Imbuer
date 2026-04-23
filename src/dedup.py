@@ -17,6 +17,7 @@ def load_history() -> set[str]:
 
 def save_history(history: set[str]) -> None:
     try:
+        HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
         trimmed = list(history)[-MAX_HISTORY:]
         with open(HISTORY_PATH, "w") as f:
             json.dump(trimmed, f)
