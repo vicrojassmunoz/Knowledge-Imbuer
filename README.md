@@ -33,9 +33,6 @@ EMAIL_FROM=
 EMAIL_TO=
 TELEGRAM_TOKEN=
 TELEGRAM_CHAT_ID=
-SMTP_HOST=
-SMTP_USER=
-SMTP_PASS=
 ```
 
 | Variable | What for |
@@ -44,7 +41,6 @@ SMTP_PASS=
 | `RESEND_API_KEY` | Email delivery via Resend |
 | `EMAIL_FROM` / `EMAIL_TO` | Sender and recipient addresses |
 | `TELEGRAM_TOKEN` / `TELEGRAM_CHAT_ID` | Telegram bot credentials |
-| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | SMTP server (port 465, SSL) |
 
 ## Config
 
@@ -70,7 +66,7 @@ max_workers = 2      # parallel Groq calls, careful with rate limits
 uv run pytest
 ```
 
-All external calls (Groq, httpx, Resend, feedparser) are mocked. 64 tests covering hash generation, dedup logic, prefilter keyword/date rules, LLM filter behaviour, notifier formatting, and the full pipeline flow.
+All external calls (Groq, httpx, Resend, feedparser) are mocked. 66 tests covering hash generation, dedup logic, prefilter keyword/date rules, LLM filter behaviour, notifier formatting, and the full pipeline flow.
 
 ## Requirements
 
