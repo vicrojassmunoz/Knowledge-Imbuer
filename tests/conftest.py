@@ -9,34 +9,8 @@ os.environ.setdefault("EMAIL_FROM", "test@example.com")
 os.environ.setdefault("EMAIL_TO", "dest@example.com")
 os.environ.setdefault("TELEGRAM_TOKEN", "test-token")
 os.environ.setdefault("TELEGRAM_CHAT_ID", "123456789")
-os.environ.setdefault("SMTP_HOST", "smtp.example.com")
-os.environ.setdefault("SMTP_USER", "user")
-os.environ.setdefault("SMTP_PASS", "pass")
 
 import pytest
-from src.fetcher import NewsItem
-
-
-@pytest.fixture
-def make_item():
-    """Factory for NewsItem with sensible defaults."""
-    def _make(
-        title="Open-source LLM benchmark released",
-        url="https://example.com/article",
-        source="Test Source",
-        summary="",
-        published="",
-        one_liner="",
-    ):
-        return NewsItem(
-            title=title,
-            url=url,
-            source=source,
-            summary=summary,
-            published=published,
-            one_liner=one_liner,
-        )
-    return _make
 
 
 @pytest.fixture

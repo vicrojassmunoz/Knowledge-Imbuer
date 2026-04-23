@@ -23,7 +23,7 @@ from src.fetcher import NewsItem
 
 logger = logging.getLogger(__name__)
 
-client = Groq(api_key=GROQ_API_KEY) # TODO: Interface for clients
+client = Groq(api_key=GROQ_API_KEY)
 
 
 def _is_recent(item: NewsItem, max_age_hours:int) -> bool:
@@ -74,7 +74,7 @@ def filter_item(item:NewsItem) -> NewsItem | None:
         logger.debug(f"Raw message: {raw}")
         result = json.loads(raw)
 
-        if result.get("keep") and result.get("score", 0 ) >= FILTER_MIN_SCORE:
+        if result.get("keep") and result.get("score", 0) >= FILTER_MIN_SCORE:
             item.one_liner = result.get("one_liner", "")
             item.score = result.get("score", 0)
             logger.info(f"KEPT [{result.get('score')}/10] {item.title[:60]}")

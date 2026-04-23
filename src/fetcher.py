@@ -67,7 +67,7 @@ def fetch_hn(query: str = HN_QUERY, min_points: int = HN_MIN_POINTS) -> list[New
 
         items = []
 
-        for hit in data.get("hits", ""):
+        for hit in data.get("hits", []):
             item = NewsItem(
                 title=hit.get("title", ""),
                 url=hit.get("url") or f"https://news.ycombinator.com/item?id={hit.get('objectID')}",

@@ -1,9 +1,5 @@
 import html
 import logging
-import smtplib
-
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 import httpx
 import resend
@@ -18,14 +14,11 @@ from src.fetcher import NewsItem
 
 logger = logging.getLogger(__name__)
 
-# TODO: Interface it
-
-# Telegram
 
 def _format_telegram(items: list[NewsItem]) -> str:
     lines = ["<b>Knowledge Imbuer — Daily Digest</b>\n"]
 
-    for i, item in enumerate(items,1 ):
+    for i, item in enumerate(items, 1):
         lines.append(
             f"{i}. <a href='{html.escape(item.url)}'>{html.escape(item.title)}</a>\n"
             f"<i>{html.escape(item.one_liner)}</i>\n"
@@ -33,6 +26,7 @@ def _format_telegram(items: list[NewsItem]) -> str:
         )
 
     return "\n".join(lines)
+
 
 def send_telegram(items: list[NewsItem]) -> bool:
     try:
@@ -55,12 +49,9 @@ def send_telegram(items: list[NewsItem]) -> bool:
         return False
 
 
-
-# Email
-
 def _format_email(items: list[NewsItem]) -> str:
     rows = ""
-    for i, item in enumerate(items,1 ):
+    for i, item in enumerate(items, 1):
         rows += f"""
         <tr>
             <td style="padding: 12px; border-bottom: 1px solid #eee;">
@@ -76,7 +67,7 @@ def _format_email(items: list[NewsItem]) -> str:
         <h2 style="color: #333;">Knowledge Imbuer — Daily Digest</h2>
         <table width="100%" cellpadding="0" cellspacing="0">{rows}</table>
         <p style="color: #999; font-size: 11px; margin-top: 20px;">
-            Powered by Athena
+            Powered by Knowledge Imbuer
         </p>
     </body></html>        
     """

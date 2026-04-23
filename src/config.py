@@ -6,10 +6,8 @@ from pathlib import Path
 
 load_dotenv()
 
-# LOAD TOML
 CONFIG_PATH = Path(__file__).parent.parent / "infrastructure" / "environments" / "config.toml"
 
-# STATIC VARIABLES
 with open(CONFIG_PATH, "rb") as f:
     _config = tomllib.load(f)
 
@@ -34,24 +32,17 @@ PREFILTER_KEYWORDS = _config["prefilter"]["keywords"]
 PREFILTER_BLACKLIST = _config["prefilter"]["blacklist"]
 PREFILTER_MAX_AGE_HOURS = _config["prefilter"]["max_age_hours"]
 
-SMTP_PORT = _config["email"]["port"]
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 EMAIL_FROM = os.getenv("EMAIL_FROM")
 EMAIL_TO = os.getenv("EMAIL_TO")
-
-# LOGGER
-def setup_logging() -> None:
-    logging.basicConfig(
-        level=logging.INFO, # TODO: Change it depending on where im running it
-        format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
-# APIKEYS
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-SMTP_HOST = os.getenv("SMTP_HOST")
-SMTP_USER = os.getenv("SMTP_USER")
-SMTP_PASS = os.getenv("SMTP_PASS")
-EMAIL_TO = os.getenv("EMAIL_TO")
+
+
+def setup_logging() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )

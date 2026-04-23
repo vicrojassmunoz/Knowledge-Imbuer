@@ -6,7 +6,6 @@ from src.fetcher import NewsItem
 
 logger = logging.getLogger(__name__)
 
-# Load and Save
 
 def load_history() -> set[str]:
     try:
@@ -25,8 +24,6 @@ def save_history(history: set[str]) -> None:
     except Exception as e:
         logger.error(f"Failed to save history: {e}")
 
-
-# Dedup
 
 def filter_seen(items: list[NewsItem]) -> tuple[list[NewsItem], set[str]]:
     history = load_history()

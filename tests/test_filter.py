@@ -84,6 +84,7 @@ class TestFilterItem:
 
         assert result is not None
         assert result.one_liner == "Fast open-source LLM inference engine"
+        assert result.score == 9
 
     def test_drops_item_when_keep_false(self):
         payload = '{"keep": false, "score": 3, "one_liner": ""}'
