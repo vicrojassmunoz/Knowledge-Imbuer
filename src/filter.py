@@ -76,6 +76,7 @@ def filter_item(item:NewsItem) -> NewsItem | None:
 
         if result.get("keep") and result.get("score", 0 ) >= FILTER_MIN_SCORE:
             item.one_liner = result.get("one_liner", "")
+            item.score = result.get("score", 0)
             logger.info(f"KEPT [{result.get('score')}/10] {item.title[:60]}")
             return item
 
@@ -103,4 +104,4 @@ def filter_all(items: list[NewsItem]) -> list[NewsItem]:
                 results.append(result)
 
     logger.info(f"Filter complete — {len(results)}/{len(limited)} items kept")
-    return results
+    return sorted(results, key=lambda item: item.score, reverse=True)

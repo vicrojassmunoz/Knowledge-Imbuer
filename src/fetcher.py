@@ -20,6 +20,7 @@ class NewsItem(BaseModel):
     summary: str=""
     published: str = ""
     one_liner: str = ""
+    score: int = 0
 
     @computed_field
     @property
