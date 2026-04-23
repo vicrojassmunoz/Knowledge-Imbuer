@@ -6,6 +6,17 @@ sources = [
     { url = "https://papers.takara.ai/api/feed", name = "HF Daily Papers" },
 ]
 
+[reddit]
+base_url="https://www.reddit.com"
+min_upvotes = 5
+max_results = 10
+subreddits = [
+    { name = "MachineLearning", sort = "top" },
+    { name = "LocalLLaMA", sort = "hot" },
+    { name = "StableDiffusion", sort = "hot" },
+    { name = "artificial", sort = "hot" },
+]
+
 [hn]
 query = "AI ML machine learning LLM"
 min_points = 50
@@ -58,7 +69,9 @@ keywords = [
 blacklist = [
     "hiring", "job opening", "hackathon", "meetup", "event",
     "partnership", "funding", "series a", "acquisition", "ipo",
-    "we are excited to announce", "proud to share"
+    "we are excited to announce", "proud to share",
+    "self-promotion thread", "who's hiring", "monthly thread",
+    "weekly thread", "discussion thread"
 ]
 max_age_hours = 24
 

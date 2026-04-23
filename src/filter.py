@@ -35,11 +35,16 @@ def _is_recent(item: NewsItem, max_age_hours: int) -> bool:
     if not item.published:
         return True
     try:
-        published = parsedate_to_datetime(item.published)
         cutoff = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
+        try:
+            ts = float(item.published)
+            published = datetime.fromtimestamp(ts, tz=timezone.utc)
+        except Exception:
+            logger.warning(f"Failed to parse date '{item.published}'")
+            return True
         return published >= cutoff
+
     except Exception:
-        logger.warning(f"Failed to parse date '{item.published}'")
         return True
 
 
