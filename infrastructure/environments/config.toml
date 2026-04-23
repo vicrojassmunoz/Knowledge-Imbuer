@@ -13,7 +13,6 @@ max_results = 10
 subreddits = [
     { name = "MachineLearning", sort = "top" },
     { name = "LocalLLaMA", sort = "hot" },
-    { name = "StableDiffusion", sort = "hot" },
     { name = "artificial", sort = "hot" },
 ]
 
@@ -71,7 +70,9 @@ blacklist = [
     "partnership", "funding", "series a", "acquisition", "ipo",
     "we are excited to announce", "proud to share",
     "self-promotion thread", "who's hiring", "monthly thread",
-    "weekly thread", "discussion thread"
+    "weekly thread", "discussion thread", "stable diffusion", "midjourney", "dall-e", "text to image",
+    "image generation", "ai art", "comfyui", "lora training",
+    "dreambooth", "controlnet"
 ]
 max_age_hours = 24
 

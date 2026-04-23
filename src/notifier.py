@@ -27,8 +27,24 @@ class BaseNotifier(ABC):
 
 
 class TelegramNotifier(BaseNotifier):
+
+    def _chunk_items(self, items: list[NewsItem], max_chars: int = 3800) -> list[list[NewsItem]]:
+        chunks, current, current_len = [], [], 0
+        for item in items:
+            item_text = (
+                f"{item.title}{item.url}{item.one_liner}{item.source}"
+            )
+            if current and current_len + len(item_text) > max_chars:
+                chunks.append(current)
+                current, current_len = [], 0
+            current.append(item)
+            current_len += len(item_text)
+        if current:
+            chunks.append(current)
+        return chunks
+
     def format(self, items: list[NewsItem]) -> str:
-        lines = ["<b>Knowledge Imbuer — Daily Digest</b>\n"]
+        lines = ["🔥 <b>Knowledge Imbuer — Daily Digest</b>\n"]
         for i, item in enumerate(items, 1):
             lines.append(
                 f"{i}. <a href='{html.escape(item.url)}'>{html.escape(item.title)}</a>\n"
@@ -40,16 +56,23 @@ class TelegramNotifier(BaseNotifier):
     def notify(self, items: list[NewsItem]) -> bool:
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-            payload = {
-                "chat_id": TELEGRAM_CHAT_ID,
-                "text": self.format(items),
-                "parse_mode": "HTML",
-                "disable_web_page_preview": True,
-            }
-            response = httpx.post(url, json=payload, timeout=10)
-            response.raise_for_status()
-            logger.info(f"Telegram notification sent - {len(items)} items")
+            chunks = self._chunk_items(items)
+
+            for chunk in chunks:
+                payload = {
+                    "chat_id": TELEGRAM_CHAT_ID,
+                    "text": self.format(chunk),
+                    "parse_mode": "HTML",
+                    "disable_web_page_preview": True,
+                }
+                response = httpx.post(url, json=payload, timeout=10)
+                if response.status_code == 400:
+                    logger.debug(f"Telegram error: {response.json()}")
+                response.raise_for_status()
+
+            logger.info(f"Telegram notification sent - {len(items)} items ({len(chunks)} messages)")
             return True
+
         except Exception as e:
             logger.error(f"Failed to send telegram notification - {e}")
             return False
