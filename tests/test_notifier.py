@@ -33,6 +33,27 @@ class TestFormatTelegram:
         assert "2." in msg
         assert "3." in msg
 
+    def test_escapes_ampersand_in_url(self):
+        # URLs with & in query params caused a 400 Bad Request from Telegram
+        # because the HTML parser rejected unescaped & inside href attributes.
+        url = "https://arxiv.org/search/?searchtype=all&query=qwen3&start=0"
+        msg = _format_telegram([_item(url=url)])
+        assert "&query=" not in msg
+        assert "&amp;query=" in msg
+
+    def test_send_telegram_passes_with_ampersand_url(self):
+        # Regression: send_telegram must not raise or return False when the URL
+        # contains & characters (previously caused Telegram 400 Bad Request).
+        url = "https://arxiv.org/search/?searchtype=all&query=qwen3&start=0"
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        with patch("src.notifier.httpx.post", return_value=mock_resp) as mock_post:
+            result = send_telegram([_item(url=url)])
+        assert result is True
+        payload = mock_post.call_args[1]["json"]
+        assert "&amp;" in payload["text"]
+        assert "&query=" not in payload["text"]
+
 
 class TestFormatEmail:
     def test_contains_item_title(self):

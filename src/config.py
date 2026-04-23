@@ -7,7 +7,7 @@ from pathlib import Path
 load_dotenv()
 
 # LOAD TOML
-CONFIG_PATH = Path(__file__).parent.parent / "config.toml"
+CONFIG_PATH = Path(__file__).parent.parent / "infrastructure" / "environments" / "config.toml"
 
 # STATIC VARIABLES
 with open(CONFIG_PATH, "rb") as f:

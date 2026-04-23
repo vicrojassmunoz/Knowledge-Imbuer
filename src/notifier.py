@@ -27,9 +27,9 @@ def _format_telegram(items: list[NewsItem]) -> str:
 
     for i, item in enumerate(items,1 ):
         lines.append(
-            f"{i}. <a href='{item.url}'>{html.escape(item.title)}</a>\n"
+            f"{i}. <a href='{html.escape(item.url)}'>{html.escape(item.title)}</a>\n"
             f"<i>{html.escape(item.one_liner)}</i>\n"
-            f"<code>{item.source}</code>\n"
+            f"<code>{html.escape(item.source)}</code>\n"
         )
 
     return "\n".join(lines)

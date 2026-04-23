@@ -1,0 +1,6 @@
+[telegram]
+[[telegram.items]]
+title = "Qwen3-32B: Technical Report & Benchmark Results"
+url = "https://arxiv.org/search/?searchtype=all&query=qwen3&start=0"
+source = "Arxiv CS.AI"
+one_liner = "Qwen3-32B achieves SOTA on MMLU-Pro & HumanEval; beats GPT-4o on 7/10 benchmarks."
