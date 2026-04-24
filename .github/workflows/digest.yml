@@ -2,15 +2,15 @@ name: Knowledge Imbuer
 
 on:
   schedule:
-    - cron: '0 7 * * *'    # 07:00 UTC
-    - cron: '0 18 * * *'   # 18:00 UTC
-  workflow_dispatch:         # manual trigger for testing
+    - cron: '0 7 * * *'
+    - cron: '0 18 * * *'
+  workflow_dispatch:
 
 jobs:
   run-digest:
     runs-on: ubuntu-latest
     permissions:
-      contents: write        # needed to commit history.json back
+      contents: write
 
     steps:
       - name: Checkout repo
@@ -18,12 +18,20 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
 
       - name: Set up Python
         run: uv python install 3.14
 
       - name: Install dependencies
         run: uv sync
+
+      - name: Cache sentence-transformers models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: sentence-transformers-all-MiniLM-L6-v2
 
       - name: Run digest
         run: uv run python main.py
@@ -34,11 +42,5 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
-
-      - name: Commit updated history
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/history.json
-          git diff --staged --quiet || git commit -m "chore: update history [skip ci]"
-          git push
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
