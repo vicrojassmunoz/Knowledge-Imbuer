@@ -150,10 +150,12 @@ class RedditFetcher(BaseFetcher):
 
 def fetch_all(fetchers: list[BaseFetcher] | None = None) -> list[NewsItem]:
     if fetchers is None:
-        fetchers = ([RSSFetcher(url, name) for url, name in RSS_SOURCES] +
-                    [HNFetcher()] +
-                    [RedditFetcher(s["name"], s["sort"]) for s in REDDIT_SUBREDDITS]
-                    )
+        fetchers = (
+                [RedditFetcher(s["name"], s["sort"]) for s in REDDIT_SUBREDDITS]
+                + [HNFetcher()]
+                + [RSSFetcher("https://papers.takara.ai/api/feed", "HF Daily Papers")]
+                + [RSSFetcher(url, name) for url, name in RSS_SOURCES]
+        )
 
     all_items = []
     with ThreadPoolExecutor(max_workers=len(fetchers)) as executor:

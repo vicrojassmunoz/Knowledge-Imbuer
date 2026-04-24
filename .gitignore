@@ -211,5 +211,7 @@ __marimo__/
 CLAUDE.md
 
 # Wiki
-
 Knowledge-Imbuer.wiki/
+
+# sentence-transformers cache
+.cache/

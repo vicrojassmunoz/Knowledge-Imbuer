@@ -11,6 +11,8 @@ dependencies = [
     "pydantic>=2.13.2",
     "python-dotenv>=1.2.2",
     "resend>=2.29.0",
+    "sentence-transformers>=5.4.1",
+    "supabase>=2.28.3",
     "tqdm>=4.67.3",
 ]
 
