@@ -6,9 +6,7 @@ from src.fetcher import NewsItem
 
 logger = logging.getLogger(__name__)
 
-
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
+_model: SentenceTransformer | None = None
 _supabase: Client | None = None
 
 def get_client() -> Client:
@@ -30,16 +28,16 @@ def _get_seen_hashes(hashes: list[str], chunk_size: int = 200) -> set[str]:
 
 
 
+def _get_model() -> SentenceTransformer:
+    global _model
+    if _model is None:
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+    return _model
+
+
 def embed(text: str) -> list[float]:
-    return model.encode(text).tolist()
+    return _get_model().encode(text).tolist()
 
-
-def is_seen(item: NewsItem) -> bool | None:
-    try:
-        result = get_client().table("items").select("hash").eq("hash", item.hash).execute()
-        return len(result.data) > 0
-    except Exception as e:
-        logger.error(f"Failed to check hash for: {item.title[:40]}: {e}")
 
 def is_similar(item: NewsItem, threshold: float=0.8) -> bool:
     try:

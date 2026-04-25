@@ -157,11 +157,13 @@ class TestFilterAll:
         assert len(results) == 1
         assert results[0].title == kept.title
 
-    def test_returns_empty_when_all_prefiltered_out(self, old_published):
-        items = [_item(title="Sports news", published=old_published)]
+    def test_returns_empty_when_llm_drops_all_items(self, mocker):
+        item = _item(title="LLM paper")
         mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value.choices[0].message.content = (
+            '{"keep": false, "score": 3, "one_liner": ""}'
+        )
 
-        results = filter_all(items, filter_=GroqFilter(client=mock_client))
+        results = filter_all([item], filter_=GroqFilter(client=mock_client))
 
-        mock_client.chat.completions.create.assert_not_called()
         assert results == []

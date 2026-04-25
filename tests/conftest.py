@@ -3,6 +3,8 @@ from datetime import datetime, timezone, timedelta
 from email.utils import format_datetime
 
 # Set env vars before any src.* import so config.py reads them correctly
+os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
+os.environ.setdefault("SUPABASE_KEY", "test-supabase-key")
 os.environ.setdefault("GROQ_API_KEY", "test-groq-key")
 os.environ.setdefault("RESEND_API_KEY", "test-resend-key")
 os.environ.setdefault("EMAIL_FROM", "test@example.com")

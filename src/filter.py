@@ -18,6 +18,7 @@ from src.config import (GROQ_API_KEY,
                         FILTER_MIN_SCORE,
                         FILTER_MAX_WORKERS,
                         PREFILTER_KEYWORDS,
+                        PREFILTER_VIP_KEYWORDS,
                         PREFILTER_BLACKLIST,
                         PREFILTER_MAX_AGE_HOURS)
 from src.fetcher import NewsItem
@@ -55,6 +56,9 @@ def prefilter(items: list[NewsItem]) -> list[NewsItem]:
     for item in tqdm(items, desc="Prefiltering", unit="item"):
         text = (item.title + " " + item.summary).lower()
         if not _is_recent(item, PREFILTER_MAX_AGE_HOURS):
+            continue
+        if any(kw in text for kw in PREFILTER_VIP_KEYWORDS):
+            result.append(item)
             continue
         if any(kw in text for kw in PREFILTER_BLACKLIST):
             continue
@@ -99,8 +103,7 @@ class GroqFilter(BaseFilter):
             return None
 
     def filter(self, items: list[NewsItem]) -> list[NewsItem]:
-        prefiltered = prefilter(items)
-        limited = prefiltered[:FILTER_MAX_INPUT]
+        limited = items[:FILTER_MAX_INPUT]
         logger.info(f"Sending {len(limited)} items to LLM filter")
 
         results = []

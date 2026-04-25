@@ -58,6 +58,7 @@ Respond with JSON only, no markdown, no extra text:
 """
 
 [prefilter]
+vip_keywords = ["qwen", "llama", "gemini", "mistral", "deepseek", "phi", "gpt", "claude"]
 keywords = [
     "llm", "language model", "gpt", "transformer", "attention",
     "computer vision", "image", "visual", "diffusion", "multimodal",

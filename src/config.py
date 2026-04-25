@@ -32,6 +32,7 @@ FILTER_TEMPERATURE = _config["filter"]["temperature"]
 FILTER_MAX_TOKENS = _config["filter"]["max_tokens"]
 SYSTEM_PROMPT = _config["filter"]["system_prompt"]
 
+PREFILTER_VIP_KEYWORDS = _config["prefilter"]["vip_keywords"]
 PREFILTER_KEYWORDS = _config["prefilter"]["keywords"]
 PREFILTER_BLACKLIST = _config["prefilter"]["blacklist"]
 PREFILTER_MAX_AGE_HOURS = _config["prefilter"]["max_age_hours"]

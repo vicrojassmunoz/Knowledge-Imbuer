@@ -5,7 +5,7 @@ from src import setup_logging
 from src.fetcher import fetch_all
 from src.filter import filter_all, prefilter
 from src.vector_store import filter_seen, save_items
-from src.notifier import TelegramNotifier, ResendEmailNotifier
+from src.notifier import notify_all
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -36,17 +36,12 @@ def main() -> None:
         logger.info("No items passed the filter, aborting")
         return
 
-
-    notifiers = [TelegramNotifier(), ResendEmailNotifier()]
-    success = all(n.notify(kept_items) for n in notifiers)
-
-
-    if success:
+    if notify_all(kept_items):
         save_items(kept_items)
         duration = time() - start
         logger.info(f"Done — {len(kept_items)} items delivered in {duration:.1f}s")
     else:
-        logger.error("Notification failed — items not saved to avoid losing them")
+        logger.error("Notification failed — history not saved to avoid losing items")
 
 
 if __name__ == "__main__":
