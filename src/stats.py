@@ -15,19 +15,22 @@ class RunStats(BaseModel):
     sources: dict[str, int] = {}
 
 
-def save_run(stats: RunStats, run_id: str | None = None) -> str | None:
+def create_run() -> str | None:
     try:
-        payload = {
+        result = get_client().table("runs").insert({
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            **stats.model_dump()
-        }
-        if run_id:
-            payload["id"] = run_id
-        result = get_client().table("runs").insert(payload).execute()
-        logger.info("Run stats saved to Supabase")
+        }).execute()
+        logger.info("Run created in Supabase")
         return result.data[0]["id"]
     except Exception as e:
-        logger.error(f"Failed to save run stats: {e}")
+        logger.error(f"Failed to create run: {e}")
+
+def finish_run(run_id: str, stats: RunStats) -> None:
+    try:
+        get_client().table("runs").update(stats.model_dump()).eq("id", run_id).execute()
+        logger.info("Run stats updated in Supabase")
+    except Exception as e:
+        logger.error(f"Failed to update run stats: {e}")
 
 def fetch_recent_runs(limit: int = 14) -> list[dict]:
     try:

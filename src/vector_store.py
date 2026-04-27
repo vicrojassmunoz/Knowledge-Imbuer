@@ -115,6 +115,7 @@ def save_discarded(items: list[NewsItem], reason: str, run_id: str | None = None
             }
             for item in items
         ]
+        logger.debug(f"save_discarded called with run_id={run_id}, reason={reason}, count={len(payload)}")
         get_client().table("discarded_items").insert(payload).execute()
         logger.debug(f"Saved {len(payload)} discarded items (reason: {reason})")
     except Exception as e:

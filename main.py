@@ -1,5 +1,4 @@
 import logging
-import uuid
 from time import time
 
 from src import setup_logging
@@ -7,17 +6,19 @@ from src.fetcher import fetch_all
 from src.filter import filter_all, prefilter
 from src.vector_store import filter_seen, save_items
 from src.notifier import notify_all
-from src.stats import RunStats, save_run
+from src.stats import RunStats, create_run, finish_run
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
 
 def main() -> None:
+    run_id = create_run()
+
     start = time()
-    run_id = str(uuid.uuid4())
     stats = RunStats()
     logger.info("Knowledge Imbuer starting...")
+    logger.info(f"run_id from create_run: {run_id}")
 
     raw_items = fetch_all()
     stats.fetched = len(raw_items)
@@ -28,7 +29,7 @@ def main() -> None:
     if not raw_items:
         logger.warning("No items fetched, aborting")
         return
-
+    
     prefiltered_items = prefilter(raw_items, run_id=run_id)
     stats.after_prefilter = len(prefiltered_items)
     if not prefiltered_items:
@@ -49,7 +50,8 @@ def main() -> None:
     if notify_all(kept_items):
         stats.delivered = len(kept_items)
         stats.duration_seconds = time() - start
-        save_run(stats, run_id=run_id)
+        if run_id:
+            finish_run(run_id, stats)
         save_items(kept_items, run_id=run_id)
         logger.info(
             f"Done — fetched {stats.fetched} → "
