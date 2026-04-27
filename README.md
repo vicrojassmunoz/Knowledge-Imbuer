@@ -7,27 +7,29 @@ It scrapes AI/ML news from Arxiv, HuggingFace Blog, HF Daily Papers and Hacker N
 ## How it works
 
 ```
-fetch → dedup → prefilter → LLM filter → notify
+fetch → prefilter → dedup → LLM filter → notify → save
 ```
 
 1. Pulls from RSS feeds (Arxiv CS.AI, Arxiv CS.LG, HuggingFace Blog, HF Daily Papers) + HN Algolia API in parallel
-2. Skips anything it's already seen (MD5 hash of URL, stored in `data/history.json`)
-3. Drops items older than 24 hours, anything matching a blacklist (hiring, funding, events), and anything without a keyword hit (llm, transformer, benchmark, etc.)
+2. Drops items older than 24 hours, anything matching a blacklist (hiring, funding, events), and anything without a keyword hit (llm, transformer, benchmark, etc.)
+3. Deduplicates in two passes: exact URL hash match against Supabase, then semantic similarity via `sentence-transformers` (cosine threshold 0.8) to catch rephrased duplicates
 4. Asks Qwen3-32b (via Groq) to score each remaining item 1–10 and write a one-liner. Items below the threshold are dropped. Hype dies here.
-5. Sends the survivors to Telegram (HTML) + email (Resend)
+5. Sends the survivors to Telegram (HTML) + email (Resend), then saves them to Supabase (only if notification succeeded)
 
 ## Setup
 
 ```bash
 uv sync
 cp .env.example .env  # fill in your keys
-python main.py
+uv run python main.py
 ```
 
 Create a `.env` file with:
 
 ```env
 GROQ_API_KEY=
+SUPABASE_URL=
+SUPABASE_KEY=
 RESEND_API_KEY=
 EMAIL_FROM=
 EMAIL_TO=
@@ -38,13 +40,14 @@ TELEGRAM_CHAT_ID=
 | Variable | What for |
 |---|---|
 | `GROQ_API_KEY` | LLM filtering via Groq |
+| `SUPABASE_URL` / `SUPABASE_KEY` | Supabase project for dedup + item storage |
 | `RESEND_API_KEY` | Email delivery via Resend |
 | `EMAIL_FROM` / `EMAIL_TO` | Sender and recipient addresses |
 | `TELEGRAM_TOKEN` / `TELEGRAM_CHAT_ID` | Telegram bot credentials |
 
 ## Config
 
-Everything tunable lives in `config.toml` — sources, scoring threshold, the model, how many items to process, the system prompt. The system prompt is where the editorial voice lives, mess with it if you want different vibes.
+Everything tunable lives in `configs/config.toml` — sources, scoring threshold, the model, how many items to process, the system prompt. The system prompt is where the editorial voice lives, mess with it if you want different vibes.
 
 ```toml
 [filter]
@@ -66,7 +69,7 @@ max_workers = 2      # parallel Groq calls, careful with rate limits
 uv run pytest
 ```
 
-All external calls (Groq, httpx, Resend, feedparser) are mocked. 66 tests covering hash generation, dedup logic, prefilter keyword/date rules, LLM filter behaviour, notifier formatting, and the full pipeline flow.
+All external calls (Groq, httpx, Resend, feedparser, Supabase) are mocked. 67 tests covering hash generation, dedup logic (exact + semantic), prefilter keyword/date rules, LLM filter behaviour, notifier formatting, and the full pipeline flow.
 
 ## Requirements
 

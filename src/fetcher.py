@@ -112,7 +112,9 @@ class RedditFetcher(BaseFetcher):
     def fetch(self) -> list[NewsItem]:
         try:
             url = f"{REDDIT_BASE_URL}/r/{self.subreddit}/{self.sort}.json"
-            headers = {"User-Agent": "Prometheus"}
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            }
             params = {"limit": self.max_results}
             if self.sort == "top":
                 params["t"] = "day"
