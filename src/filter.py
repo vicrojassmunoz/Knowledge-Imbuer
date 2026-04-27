@@ -22,13 +22,14 @@ from src.config import (GROQ_API_KEY,
                         PREFILTER_BLACKLIST,
                         PREFILTER_MAX_AGE_HOURS)
 from src.fetcher import NewsItem
+from src.vector_store import save_discarded
 
 logger = logging.getLogger(__name__)
 
 
 class BaseFilter(ABC):
     @abstractmethod
-    def filter(self, items: list[NewsItem]) -> list[NewsItem]:
+    def filter(self, items: list[NewsItem], run_id: str | None = None) -> list[NewsItem]:
         ...
 
 
@@ -51,19 +52,31 @@ def _is_recent(item: NewsItem, max_age_hours: int) -> bool:
         return True
 
 
-def prefilter(items: list[NewsItem]) -> list[NewsItem]:
+def prefilter(items: list[NewsItem], run_id: str | None = None) -> list[NewsItem]:
     result = []
+    discarded: dict[str, list[NewsItem]] = {"too_old": [], "blacklist": [], "keyword_miss": []}
+
     for item in tqdm(items, desc="Prefiltering", unit="item"):
         text = (item.title + " " + item.summary).lower()
         if not _is_recent(item, PREFILTER_MAX_AGE_HOURS):
+            discarded["too_old"].append(item)
             continue
         if any(kw in text for kw in PREFILTER_VIP_KEYWORDS):
             result.append(item)
             continue
         if any(kw in text for kw in PREFILTER_BLACKLIST):
+            discarded["blacklist"].append(item)
             continue
         if any(kw in text for kw in PREFILTER_KEYWORDS):
             result.append(item)
+            continue
+        discarded["keyword_miss"].append(item)
+
+    if run_id:
+        for reason, dropped in discarded.items():
+            if dropped:
+                save_discarded(dropped, reason, run_id)
+
     logger.info(f"Prefilter: {len(result)}/{len(items)} items passed")
     return result
 
@@ -72,7 +85,7 @@ class GroqFilter(BaseFilter):
     def __init__(self, client=None):
         self.client = client or Groq(api_key=GROQ_API_KEY)
 
-    def filter_item(self, item: NewsItem) -> NewsItem | None:
+    def filter_item(self, item: NewsItem) -> tuple[NewsItem | None, str | None]:
         try:
             user_message = f"Title: {item.title}\nSummary: {item.summary}\nSource: {item.source}"
             response = self.client.chat.completions.create(
@@ -94,29 +107,36 @@ class GroqFilter(BaseFilter):
                 item.one_liner = result.get("one_liner", "")
                 item.score = result.get("score", 0)
                 logger.info(f"KEPT [{result.get('score')}/10] {item.title[:60]}")
-                return item
+                return item, None
 
             logger.info(f"Dropped {item.title[:60]}")
-            return None
+            return None, "llm_score"
         except Exception as e:
             logger.error(f"Failed to filter item '{item.title[:40]}': {e}")
-            return None
+            return None, "llm_error"
 
-    def filter(self, items: list[NewsItem]) -> list[NewsItem]:
+    def filter(self, items: list[NewsItem], run_id: str | None = None) -> list[NewsItem]:
         limited = items[:FILTER_MAX_INPUT]
         logger.info(f"Sending {len(limited)} items to LLM filter")
 
         results = []
+        discarded: dict[str, list[NewsItem]] = {}
         with ThreadPoolExecutor(max_workers=FILTER_MAX_WORKERS) as executor:
             futures = {executor.submit(self.filter_item, item): item for item in limited}
             for future in tqdm(as_completed(futures), total=len(futures), desc="LLM Filtering", unit="item"):
-                result = future.result()
-                if result:
-                    results.append(result)
+                kept, reason = future.result()
+                if kept:
+                    results.append(kept)
+                elif reason:
+                    discarded.setdefault(reason, []).append(futures[future])
+
+        if run_id:
+            for reason, dropped in discarded.items():
+                save_discarded(dropped, reason, run_id)
 
         logger.info(f"Filter complete — {len(results)}/{len(limited)} items kept")
         return sorted(results, key=lambda item: item.score, reverse=True)
 
 
-def filter_all(items: list[NewsItem], filter_: BaseFilter | None = None) -> list[NewsItem]:
-    return (filter_ or GroqFilter()).filter(items)
+def filter_all(items: list[NewsItem], filter_: BaseFilter | None = None, run_id: str | None = None) -> list[NewsItem]:
+    return (filter_ or GroqFilter()).filter(items, run_id=run_id)

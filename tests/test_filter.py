@@ -79,56 +79,61 @@ class TestGroqFilterItem:
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = self._mock_groq_response(payload)
 
-        result = GroqFilter(client=mock_client).filter_item(_item(title="llm.c repo"))
+        kept, reason = GroqFilter(client=mock_client).filter_item(_item(title="llm.c repo"))
 
-        assert result is not None
-        assert result.one_liner == "Fast open-source LLM inference engine"
-        assert result.score == 9
+        assert kept is not None
+        assert kept.one_liner == "Fast open-source LLM inference engine"
+        assert kept.score == 9
+        assert reason is None
 
     def test_drops_item_when_keep_false(self):
         payload = '{"keep": false, "score": 3, "one_liner": ""}'
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = self._mock_groq_response(payload)
 
-        result = GroqFilter(client=mock_client).filter_item(_item(title="Hiring ML engineers"))
+        kept, reason = GroqFilter(client=mock_client).filter_item(_item(title="Hiring ML engineers"))
 
-        assert result is None
+        assert kept is None
+        assert reason == "llm_score"
 
     def test_drops_item_when_score_below_min(self):
         payload = '{"keep": true, "score": 2, "one_liner": "meh"}'
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = self._mock_groq_response(payload)
 
-        result = GroqFilter(client=mock_client).filter_item(_item(title="Some weak post"))
+        kept, reason = GroqFilter(client=mock_client).filter_item(_item(title="Some weak post"))
 
-        assert result is None
+        assert kept is None
+        assert reason == "llm_score"
 
     def test_strips_think_tags_from_reasoning_model_output(self):
         payload = '<think>reasoning here</think>\n{"keep": true, "score": 8, "one_liner": "Good paper"}'
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = self._mock_groq_response(payload)
 
-        result = GroqFilter(client=mock_client).filter_item(_item(title="Research paper"))
+        kept, reason = GroqFilter(client=mock_client).filter_item(_item(title="Research paper"))
 
-        assert result is not None
-        assert result.one_liner == "Good paper"
+        assert kept is not None
+        assert kept.one_liner == "Good paper"
 
     def test_returns_none_on_groq_exception(self):
         mock_client = MagicMock()
         mock_client.chat.completions.create.side_effect = Exception("API error")
 
-        result = GroqFilter(client=mock_client).filter_item(_item(title="anything"))
+        kept, reason = GroqFilter(client=mock_client).filter_item(_item(title="anything"))
 
-        assert result is None
+        assert kept is None
+        assert reason == "llm_error"
 
     def test_returns_none_on_invalid_json(self):
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = MagicMock()
         mock_client.chat.completions.create.return_value.choices[0].message.content = "not json at all"
 
-        result = GroqFilter(client=mock_client).filter_item(_item(title="anything"))
+        kept, reason = GroqFilter(client=mock_client).filter_item(_item(title="anything"))
 
-        assert result is None
+        assert kept is None
+        assert reason == "llm_error"
 
 
 # ── filter_all ────────────────────────────────────────────────────────────────

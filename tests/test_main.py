@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, ANY
 
 import pytest
 
@@ -32,7 +32,7 @@ class TestMainPipeline:
              patch(PATCH_SAVE_RUN):
             main()
 
-        mock_save.assert_called_once_with([item])
+        mock_save.assert_called_once_with([item], run_id=ANY)
 
     def test_does_not_save_items_when_notify_fails(self):
         item = _item()
@@ -118,8 +118,8 @@ class TestMainPipeline:
              patch(PATCH_SAVE_RUN):
             main()
 
-        mock_prefilter.assert_called_once_with(raw)
-        mock_dedup.assert_called_once_with(prefiltered)
-        mock_filter_all.assert_called_once_with(deduped)
+        mock_prefilter.assert_called_once_with(raw, run_id=ANY)
+        mock_dedup.assert_called_once_with(prefiltered, run_id=ANY)
+        mock_filter_all.assert_called_once_with(deduped, run_id=ANY)
         mock_notify.assert_called_once_with(filtered)
-        mock_save.assert_called_once_with(filtered)
+        mock_save.assert_called_once_with(filtered, run_id=ANY)

@@ -15,13 +15,17 @@ class RunStats(BaseModel):
     sources: dict[str, int] = {}
 
 
-def save_run(stats: RunStats) -> None:
+def save_run(stats: RunStats, run_id: str | None = None) -> str | None:
     try:
-        get_client().table("runs").insert({
+        payload = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             **stats.model_dump()
-        }).execute()
+        }
+        if run_id:
+            payload["id"] = run_id
+        result = get_client().table("runs").insert(payload).execute()
         logger.info("Run stats saved to Supabase")
+        return result.data[0]["id"]
     except Exception as e:
         logger.error(f"Failed to save run stats: {e}")
 
