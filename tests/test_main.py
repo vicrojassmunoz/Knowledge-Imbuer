@@ -16,6 +16,7 @@ PATCH_FILTER_SEEN = "main.filter_seen"
 PATCH_FILTER_ALL = "main.filter_all"
 PATCH_NOTIFY = "main.notify_all"
 PATCH_SAVE = "main.save_items"
+PATCH_SAVE_RUN = "main.save_run"
 
 
 class TestMainPipeline:
@@ -27,7 +28,8 @@ class TestMainPipeline:
              patch(PATCH_FILTER_SEEN, return_value=[item]), \
              patch(PATCH_FILTER_ALL, return_value=[item]), \
              patch(PATCH_NOTIFY, return_value=True), \
-             patch(PATCH_SAVE) as mock_save:
+             patch(PATCH_SAVE) as mock_save, \
+             patch(PATCH_SAVE_RUN):
             main()
 
         mock_save.assert_called_once_with([item])
@@ -40,10 +42,12 @@ class TestMainPipeline:
              patch(PATCH_FILTER_SEEN, return_value=[item]), \
              patch(PATCH_FILTER_ALL, return_value=[item]), \
              patch(PATCH_NOTIFY, return_value=False), \
-             patch(PATCH_SAVE) as mock_save:
+             patch(PATCH_SAVE) as mock_save, \
+             patch(PATCH_SAVE_RUN) as mock_save_run:
             main()
 
         mock_save.assert_not_called()
+        mock_save_run.assert_not_called()
 
     def test_aborts_early_when_fetch_returns_empty(self):
         with patch(PATCH_FETCH, return_value=[]), \
@@ -110,7 +114,8 @@ class TestMainPipeline:
              patch(PATCH_FILTER_SEEN, return_value=deduped) as mock_dedup, \
              patch(PATCH_FILTER_ALL, return_value=filtered) as mock_filter_all, \
              patch(PATCH_NOTIFY, return_value=True) as mock_notify, \
-             patch(PATCH_SAVE) as mock_save:
+             patch(PATCH_SAVE) as mock_save, \
+             patch(PATCH_SAVE_RUN):
             main()
 
         mock_prefilter.assert_called_once_with(raw)
