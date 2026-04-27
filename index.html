@@ -401,16 +401,26 @@ function App() {
                 </>
             )}
 
-            <footer>
+            <div style={{
+                marginTop: "2.5rem",
+                paddingTop: "1.5rem",
+                borderTop: "1px solid #21262d",
+                color: "#484f58",
+                fontSize: "0.8rem",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+            }}>
                 <span>Last run: {lastRun}</span>
-
+                <a
                     href="https://github.com/vicrojassmunoz/Knowledge-Imbuer"
                     target="_blank"
                     rel="noopener noreferrer"
+                    style={{ color: "#58a6ff", textDecoration: "none" }}
                 >
-                    GitHub &#8594;
+                    GitHub
                 </a>
-            </footer>
+            </div>
         </div>
     )
 }
