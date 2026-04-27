@@ -28,9 +28,7 @@
             padding: 2.5rem 1.5rem;
         }
 
-        header {
-            margin-bottom: 2.5rem;
-        }
+        header { margin-bottom: 2.5rem; }
 
         .header-top {
             display: flex;
@@ -39,9 +37,7 @@
             margin-bottom: 0.4rem;
         }
 
-        .fire {
-            font-size: 1.6rem;
-        }
+        .fire { font-size: 1.6rem; }
 
         h1 {
             font-size: 1.8rem;
@@ -103,11 +99,7 @@
             overflow: hidden;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.875rem;
-        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 
         th {
             text-align: left;
@@ -129,7 +121,9 @@
         }
 
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #1c2128; }
+
+        tr.clickable { cursor: pointer; }
+        tr.clickable:hover td { background: #1c2128; }
 
         .badge {
             display: inline-flex;
@@ -142,26 +136,11 @@
             letter-spacing: 0.02em;
         }
 
-        .badge-ok {
-            background: #1a3a2a;
-            color: #3fb950;
-            border: 1px solid #2d6a40;
-        }
+        .badge-ok { background: #1a3a2a; color: #3fb950; border: 1px solid #2d6a40; }
+        .badge-empty { background: #3d1f1f; color: #f85149; border: 1px solid #6e2c2c; }
 
-        .badge-empty {
-            background: #3d1f1f;
-            color: #f85149;
-            border: 1px solid #6e2c2c;
-        }
-
-        .delivered-ok {
-            font-weight: 700;
-            color: #3fb950;
-        }
-
-        .delivered-zero {
-            color: #f85149;
-        }
+        .delivered-ok { font-weight: 700; color: #3fb950; }
+        .delivered-zero { color: #f85149; }
 
         .sources-cell {
             color: #8b949e;
@@ -182,6 +161,124 @@
 
         .funnel .num { color: #e6edf3; font-weight: 500; }
         .funnel .arrow { color: #484f58; font-size: 0.7rem; }
+
+        /* — Detail view — */
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: none;
+            border: 1px solid #21262d;
+            color: #8b949e;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-btn:hover { border-color: #388bfd; color: #58a6ff; }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel {
+            background: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 10px;
+            padding: 1.2rem;
+        }
+
+        .panel-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #8b949e;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .reason-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .reason-label {
+            font-size: 0.8rem;
+            color: #8b949e;
+            width: 130px;
+            flex-shrink: 0;
+        }
+
+        .reason-bar-wrap {
+            flex: 1;
+            background: #21262d;
+            border-radius: 4px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .reason-bar { height: 100%; border-radius: 4px; }
+
+        .reason-count {
+            font-size: 0.8rem;
+            color: #e6edf3;
+            font-weight: 500;
+            width: 36px;
+            text-align: right;
+        }
+
+        .item-row {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #21262d;
+        }
+
+        .item-row:last-child { border-bottom: none; }
+
+        .item-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #58a6ff;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .item-title:hover { text-decoration: underline; }
+
+        .item-meta {
+            font-size: 0.75rem;
+            color: #8b949e;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .item-score {
+            background: #1a3a2a;
+            color: #3fb950;
+            border: 1px solid #2d6a40;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .item-one-liner {
+            font-size: 0.78rem;
+            color: #8b949e;
+            margin-top: 0.2rem;
+            font-style: italic;
+        }
+
+        /* — Loading / error — */
 
         .loading {
             text-align: center;
@@ -218,14 +315,11 @@
             align-items: center;
         }
 
-        footer a {
-            color: #58a6ff;
-            text-decoration: none;
-        }
-
+        footer a { color: #58a6ff; text-decoration: none; }
         footer a:hover { text-decoration: underline; }
 
-        @media (max-width: 640px) {
+        @media (max-width: 700px) {
+            .detail-grid { grid-template-columns: 1fr; }
             .hide-mobile { display: none; }
             .sources-cell { max-width: 140px; }
         }
@@ -251,6 +345,26 @@ function formatDate(iso) {
     }) + " UTC"
 }
 
+const REASON_COLORS = {
+    too_old:        "#484f58",
+    keyword_miss:   "#388bfd",
+    blacklist:      "#d2a8ff",
+    exact_dedup:    "#ffa657",
+    semantic_dedup: "#e3b341",
+    llm_score:      "#f78166",
+    llm_error:      "#f85149",
+}
+
+const REASON_LABELS = {
+    too_old:        "Too old",
+    keyword_miss:   "Keyword miss",
+    blacklist:      "Blacklist",
+    exact_dedup:    "Exact dedup",
+    semantic_dedup: "Semantic dedup",
+    llm_score:      "LLM score",
+    llm_error:      "LLM error",
+}
+
 function StatCard({ label, value, color = "#58a6ff" }) {
     return (
         <div className="card">
@@ -260,7 +374,7 @@ function StatCard({ label, value, color = "#58a6ff" }) {
     )
 }
 
-function RunRow({ run, index }) {
+function RunRow({ run, onClick }) {
     const delivered = run.delivered ?? 0
     const sources = run.sources ?? {}
     const topSources = Object.entries(sources)
@@ -270,7 +384,7 @@ function RunRow({ run, index }) {
         .join(" · ")
 
     return (
-        <tr>
+        <tr className="clickable" onClick={() => onClick(run)}>
             <td>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                     <span className={`badge ${delivered > 0 ? "badge-ok" : "badge-empty"}`}>
@@ -298,10 +412,149 @@ function RunRow({ run, index }) {
             <td style={{ color: "#8b949e", fontSize: "0.82rem" }}>
                 {run.duration_seconds?.toFixed(1)}s
             </td>
-            <td className="sources-cell hide-mobile">
-                {topSources || "—"}
-            </td>
+            <td className="sources-cell hide-mobile">{topSources || "—"}</td>
         </tr>
+    )
+}
+
+function DiscardsPanel({ runId }) {
+    const [discards, setDiscards] = React.useState([])
+    const [loading, setLoading] = React.useState(true)
+
+    React.useEffect(() => {
+        async function load() {
+            const { data } = await db
+                .from("discarded_items")
+                .select("reason")
+                .eq("run_id", runId)
+            if (data) setDiscards(data)
+            setLoading(false)
+        }
+        load()
+    }, [runId])
+
+    if (loading) return (
+        <div className="panel">
+            <div className="panel-title">Discard reasons</div>
+            <p style={{ color: "#8b949e", fontSize: "0.82rem" }}>Loading...</p>
+        </div>
+    )
+
+    const counts = discards.reduce((acc, d) => {
+        acc[d.reason] = (acc[d.reason] ?? 0) + 1
+        return acc
+    }, {})
+
+    const total = discards.length
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
+
+    return (
+        <div className="panel">
+            <div className="panel-title">Discard reasons — {total} total</div>
+            {sorted.length === 0 && (
+                <p style={{ color: "#8b949e", fontSize: "0.82rem" }}>No discards recorded.</p>
+            )}
+            {sorted.map(([reason, count]) => (
+                <div className="reason-row" key={reason}>
+                    <div className="reason-label">{REASON_LABELS[reason] ?? reason}</div>
+                    <div className="reason-bar-wrap">
+                        <div
+                            className="reason-bar"
+                            style={{
+                                width: `${Math.round((count / total) * 100)}%`,
+                                background: REASON_COLORS[reason] ?? "#8b949e"
+                            }}
+                        />
+                    </div>
+                    <div className="reason-count">{count}</div>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+function DeliveredPanel({ runId }) {
+    const [items, setItems] = React.useState([])
+    const [loading, setLoading] = React.useState(true)
+
+    React.useEffect(() => {
+        async function load() {
+            const { data } = await db
+                .from("items")
+                .select("title, url, source, score, one_liner")
+                .eq("run_id", runId)
+                .order("score", { ascending: false })
+            if (data) setItems(data)
+            setLoading(false)
+        }
+        load()
+    }, [runId])
+
+    if (loading) return (
+        <div className="panel">
+            <div className="panel-title">Delivered items</div>
+            <p style={{ color: "#8b949e", fontSize: "0.82rem" }}>Loading...</p>
+        </div>
+    )
+
+    return (
+        <div className="panel">
+            <div className="panel-title">Delivered items — {items.length}</div>
+            {items.length === 0 && (
+                <p style={{ color: "#8b949e", fontSize: "0.82rem" }}>No items delivered this run.</p>
+            )}
+            {items.map((item, i) => (
+                <div className="item-row" key={i}>
+                    <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="item-title"
+                    >
+                        {item.title}
+                    </a>
+                    <div className="item-meta">
+                        <span className="item-score">{item.score}/10</span>
+                        <span>{item.source}</span>
+                    </div>
+                    {item.one_liner && (
+                        <div className="item-one-liner">{item.one_liner}</div>
+                    )}
+                </div>
+            ))}
+        </div>
+    )
+}
+
+function RunDetail({ run, onBack }) {
+    return (
+        <div>
+            <button className="back-btn" onClick={onBack}>← Back</button>
+
+            <div style={{ marginBottom: "1.5rem" }}>
+                <div style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>
+                    Run — {formatDate(run.timestamp)}
+                </div>
+                <div className="funnel">
+                    <span>Fetched</span>
+                    <span className="num" style={{ marginLeft: "0.3rem" }}>{run.fetched ?? 0}</span>
+                    <span className="arrow">›</span>
+                    <span>Prefilter</span>
+                    <span className="num" style={{ marginLeft: "0.3rem" }}>{run.after_prefilter ?? 0}</span>
+                    <span className="arrow">›</span>
+                    <span>Dedup</span>
+                    <span className="num" style={{ marginLeft: "0.3rem" }}>{run.after_dedup ?? 0}</span>
+                    <span className="arrow">›</span>
+                    <span>Delivered</span>
+                    <span className="num" style={{ marginLeft: "0.3rem", color: "#3fb950" }}>{run.delivered ?? 0}</span>
+                </div>
+            </div>
+
+            <div className="detail-grid">
+                <DiscardsPanel runId={run.id} />
+                <DeliveredPanel runId={run.id} />
+            </div>
+        </div>
     )
 }
 
@@ -309,6 +562,7 @@ function App() {
     const [runs, setRuns] = React.useState([])
     const [loading, setLoading] = React.useState(true)
     const [error, setError] = React.useState(null)
+    const [selectedRun, setSelectedRun] = React.useState(null)
 
     async function load() {
         setLoading(true)
@@ -331,12 +585,8 @@ function App() {
 
     const totalDelivered = runs.reduce((s, r) => s + (r.delivered ?? 0), 0)
     const successfulRuns = runs.filter(r => (r.delivered ?? 0) > 0).length
-    const avgDelivered = runs.length
-        ? (totalDelivered / runs.length).toFixed(1)
-        : "0"
-    const lastRun = runs[0]
-        ? formatDate(runs[0].timestamp)
-        : "—"
+    const avgDelivered = runs.length ? (totalDelivered / runs.length).toFixed(1) : "0"
+    const lastRun = runs[0] ? formatDate(runs[0].timestamp) : "—"
 
     return (
         <div className="container">
@@ -345,7 +595,7 @@ function App() {
                     <span className="fire">🔥</span>
                     <h1>Knowledge <span>Imbuer</span></h1>
                     <button
-                        onClick={() => load()}
+                        onClick={() => { setSelectedRun(null); load() }}
                         disabled={loading}
                         style={{
                             marginLeft: "auto",
@@ -374,52 +624,42 @@ function App() {
             )}
 
             {error && (
-                <div className="error">
-                    Failed to load stats: {error}
-                </div>
+                <div className="error">Failed to load stats: {error}</div>
             )}
 
             {!loading && !error && (
-                <>
-                    <div className="cards">
-                        <StatCard label="Runs tracked" value={runs.length} />
-                        <StatCard
-                            label="Successful"
-                            value={successfulRuns}
-                            color="#3fb950"
-                        />
-                        <StatCard
-                            label="Total delivered"
-                            value={totalDelivered}
-                            color="#d2a8ff"
-                        />
-                        <StatCard
-                            label="Avg per run"
-                            value={avgDelivered}
-                            color="#ffa657"
-                        />
-                    </div>
+                selectedRun ? (
+                    <RunDetail run={selectedRun} onBack={() => setSelectedRun(null)} />
+                ) : (
+                    <>
+                        <div className="cards">
+                            <StatCard label="Runs tracked" value={runs.length} />
+                            <StatCard label="Successful" value={successfulRuns} color="#3fb950" />
+                            <StatCard label="Total delivered" value={totalDelivered} color="#d2a8ff" />
+                            <StatCard label="Avg per run" value={avgDelivered} color="#ffa657" />
+                        </div>
 
-                    <p className="section-title">Last 14 runs</p>
-                    <div className="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Run</th>
-                                    <th className="hide-mobile">Pipeline</th>
-                                    <th>Delivered</th>
-                                    <th>Duration</th>
-                                    <th className="hide-mobile">Top sources</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {runs.map((r, i) => (
-                                    <RunRow key={r.id} run={r} index={i} />
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </>
+                        <p className="section-title">Last 14 runs</p>
+                        <div className="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Run</th>
+                                        <th className="hide-mobile">Pipeline</th>
+                                        <th>Delivered</th>
+                                        <th>Duration</th>
+                                        <th className="hide-mobile">Top sources</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {runs.map(r => (
+                                        <RunRow key={r.id} run={r} onClick={setSelectedRun} />
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                )
             )}
 
             <div style={{
