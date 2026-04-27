@@ -420,12 +420,13 @@ function RunRow({ run, onClick }) {
 function DiscardsPanel({ runId }) {
     const [discards, setDiscards] = React.useState([])
     const [loading, setLoading] = React.useState(true)
+    const [expanded, setExpanded] = React.useState(null)
 
     React.useEffect(() => {
         async function load() {
             const { data } = await db
                 .from("discarded_items")
-                .select("reason")
+                .select("reason, title, url, source")
                 .eq("run_id", runId)
             if (data) setDiscards(data)
             setLoading(false)
@@ -440,13 +441,14 @@ function DiscardsPanel({ runId }) {
         </div>
     )
 
-    const counts = discards.reduce((acc, d) => {
-        acc[d.reason] = (acc[d.reason] ?? 0) + 1
+    const grouped = discards.reduce((acc, d) => {
+        if (!acc[d.reason]) acc[d.reason] = []
+        acc[d.reason].push(d)
         return acc
     }, {})
 
     const total = discards.length
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
+    const sorted = Object.entries(grouped).sort((a, b) => b[1].length - a[1].length)
 
     return (
         <div className="panel">
@@ -454,19 +456,62 @@ function DiscardsPanel({ runId }) {
             {sorted.length === 0 && (
                 <p style={{ color: "#8b949e", fontSize: "0.82rem" }}>No discards recorded.</p>
             )}
-            {sorted.map(([reason, count]) => (
-                <div className="reason-row" key={reason}>
-                    <div className="reason-label">{REASON_LABELS[reason] ?? reason}</div>
-                    <div className="reason-bar-wrap">
-                        <div
-                            className="reason-bar"
-                            style={{
-                                width: `${Math.round((count / total) * 100)}%`,
-                                background: REASON_COLORS[reason] ?? "#8b949e"
-                            }}
-                        />
+            {sorted.map(([reason, items]) => (
+                <div key={reason} style={{ marginBottom: "0.5rem" }}>
+                    <div
+                        className="reason-row"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setExpanded(expanded === reason ? null : reason)}
+                    >
+                        <div className="reason-label">
+                            {REASON_LABELS[reason] ?? reason}
+                            <span style={{ marginLeft: "0.4rem", color: "#484f58", fontSize: "0.7rem" }}>
+                                {expanded === reason ? "▲" : "▼"}
+                            </span>
+                        </div>
+                        <div className="reason-bar-wrap">
+                            <div
+                                className="reason-bar"
+                                style={{
+                                    width: `${Math.round((items.length / total) * 100)}%`,
+                                    background: REASON_COLORS[reason] ?? "#8b949e"
+                                }}
+                            />
+                        </div>
+                        <div className="reason-count">{items.length}</div>
                     </div>
-                    <div className="reason-count">{count}</div>
+
+                    {expanded === reason && (
+                        <div style={{
+                            marginLeft: "130px",
+                            marginTop: "0.4rem",
+                            marginBottom: "0.5rem",
+                            borderLeft: `2px solid ${REASON_COLORS[reason] ?? "#8b949e"}`,
+                            paddingLeft: "0.75rem",
+                            maxHeight: "200px",
+                            overflowY: "auto"
+                        }}>
+                            {items.map((item, i) => (
+                                <div key={i} style={{ marginBottom: "0.4rem", fontSize: "0.78rem" }}>
+                                    {item.url ? (
+                                        <a
+                                            href={item.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ color: "#58a6ff", textDecoration: "none" }}
+                                        >
+                                            {item.title || item.url}
+                                        </a>
+                                    ) : (
+                                        <span style={{ color: "#8b949e" }}>{item.title}</span>
+                                    )}
+                                    <span style={{ marginLeft: "0.5rem", color: "#484f58", fontSize: "0.72rem" }}>
+                                        {item.source}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             ))}
         </div>
