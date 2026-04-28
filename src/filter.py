@@ -83,7 +83,7 @@ def prefilter(items: list[NewsItem], run_id: str | None = None) -> list[NewsItem
 
 class GroqFilter(BaseFilter):
     def __init__(self, client=None):
-        self.client = client or Groq(api_key=GROQ_API_KEY)
+        self.client = client or Groq(api_key=GROQ_API_KEY, max_retries=0)
 
     def filter_item(self, item: NewsItem) -> tuple[NewsItem | None, str | None]:
         user_message = f"Title: {item.title}\nSummary: {item.summary}\nSource: {item.source}"
