@@ -135,6 +135,22 @@ class TestGroqFilterItem:
         assert kept is None
         assert reason == "llm_error"
 
+    def test_falls_back_to_next_model_on_exception(self):
+        success_payload = '{"keep": true, "score": 8, "one_liner": "Good paper"}'
+        success_response = self._mock_groq_response(success_payload)
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.side_effect = [
+            Exception("first model down"),
+            success_response,
+        ]
+
+        kept, reason = GroqFilter(client=mock_client).filter_item(_item(title="Research paper"))
+
+        assert kept is not None
+        assert kept.one_liner == "Good paper"
+        assert reason is None
+        assert mock_client.chat.completions.create.call_count == 2
+
 
 # ── filter_all ────────────────────────────────────────────────────────────────
 

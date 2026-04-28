@@ -82,7 +82,9 @@ max_age_hours = 24
 qwen = "qwen/qwen3-32b"
 llama = "llama-3.3-70b-versatile"
 scout = "meta-llama/llama-4-scout-17b-16e-instruct"
+deepseek = "deepseek-r1-distill-llama-70b"
 active = "qwen"
+fallback_order = ["qwen", "llama", "scout", "deepseek"]
 
 [logging]
 level = "INFO"

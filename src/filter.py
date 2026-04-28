@@ -10,7 +10,7 @@ from groq import Groq
 from tqdm import tqdm
 
 from src.config import (GROQ_API_KEY,
-                        FILTER_MODEL,
+                        FALLBACK_MODELS,
                         SYSTEM_PROMPT,
                         FILTER_TEMPERATURE,
                         FILTER_MAX_TOKENS,
@@ -86,34 +86,40 @@ class GroqFilter(BaseFilter):
         self.client = client or Groq(api_key=GROQ_API_KEY)
 
     def filter_item(self, item: NewsItem) -> tuple[NewsItem | None, str | None]:
-        try:
-            user_message = f"Title: {item.title}\nSummary: {item.summary}\nSource: {item.source}"
-            response = self.client.chat.completions.create(
-                model=FILTER_MODEL,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_message},
-                ],
-                temperature=FILTER_TEMPERATURE,
-                max_tokens=FILTER_MAX_TOKENS,
-            )
-            raw = response.choices[0].message.content
-            if "</think>" in raw:
-                raw = raw.split("</think>")[-1].strip()
-            logger.debug(f"Raw message: {raw}")
-            result = json.loads(raw)
+        user_message = f"Title: {item.title}\nSummary: {item.summary}\nSource: {item.source}"
 
-            if result.get("keep") and result.get("score", 0) >= FILTER_MIN_SCORE:
-                item.one_liner = result.get("one_liner", "")
-                item.score = result.get("score", 0)
-                logger.info(f"KEPT [{result.get('score')}/10] {item.title[:60]}")
-                return item, None
+        for model in FALLBACK_MODELS:
+            try:
+                response = self.client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": user_message},
+                    ],
+                    temperature=FILTER_TEMPERATURE,
+                    max_tokens=FILTER_MAX_TOKENS,
+                )
+                raw = response.choices[0].message.content
+                if "</think>" in raw:
+                    raw = raw.split("</think>")[-1].strip()
 
-            logger.info(f"Dropped {item.title[:60]}")
-            return None, "llm_score"
-        except Exception as e:
-            logger.error(f"Failed to filter item '{item.title[:40]}': {e}")
-            return None, "llm_error"
+                result = json.loads(raw)
+
+                if result.get("keep") and result.get("score", 0) >= FILTER_MIN_SCORE:
+                    item.one_liner = result.get("one_liner", "")
+                    item.score = result.get("score", 0)
+                    logger.info(f"✅ KEPT [{result.get('score')}/10] ({model.split('/')[0]}) {item.title[:55]}")
+                    return item, None
+
+                logger.info(f"❌ Dropped {item.title[:60]}")
+                return None, "llm_score"
+
+            except Exception as e:
+                logger.warning(f"Model {model} failed for '{item.title[:30]}': {e} — trying next")
+                continue
+
+        logger.error(f"All models failed for '{item.title[:40]}'")
+        return None, "llm_error"
 
     def filter(self, items: list[NewsItem], run_id: str | None = None) -> list[NewsItem]:
         limited = items[:FILTER_MAX_INPUT]
