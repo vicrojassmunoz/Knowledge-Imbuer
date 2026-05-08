@@ -1,3 +1,4 @@
+import os
 import logging
 import json
 from abc import ABC, abstractmethod
@@ -25,7 +26,7 @@ from src.fetcher import NewsItem
 from src.vector_store import save_discarded
 
 logger = logging.getLogger(__name__)
-
+CI = os.getenv("CI", "false").lower() == "true"
 
 class BaseFilter(ABC):
     @abstractmethod
@@ -56,7 +57,7 @@ def prefilter(items: list[NewsItem], run_id: str | None = None) -> list[NewsItem
     result = []
     discarded: dict[str, list[NewsItem]] = {"too_old": [], "blacklist": [], "keyword_miss": []}
 
-    for item in tqdm(items, desc="Prefiltering", unit="item"):
+    for item in tqdm(items, desc="Prefiltering", unit="item", disable=CI):
         text = (item.title + " " + item.summary).lower()
         if not _is_recent(item, PREFILTER_MAX_AGE_HOURS):
             discarded["too_old"].append(item)
@@ -86,7 +87,7 @@ class GroqFilter(BaseFilter):
         self.client = client or Groq(api_key=GROQ_API_KEY, max_retries=0)
 
     def filter_item(self, item: NewsItem) -> tuple[NewsItem | None, str | None]:
-        user_message = f"Title: {item.title}\nSummary: {item.summary}\nSource: {item.source}"
+        user_message = f"Title: {item.title}\nSummary: {item.summary[:500]}\nSource: {item.source}"
 
         for model in FALLBACK_MODELS:
             try:
@@ -99,7 +100,7 @@ class GroqFilter(BaseFilter):
                     temperature=FILTER_TEMPERATURE,
                     max_tokens=FILTER_MAX_TOKENS,
                 )
-                raw = response.choices[0].message.content
+                raw = response.choices[0].message.content or ""
                 if "</think>" in raw:
                     raw = raw.split("</think>")[-1].strip()
 
@@ -108,10 +109,10 @@ class GroqFilter(BaseFilter):
                 if result.get("keep") and result.get("score", 0) >= FILTER_MIN_SCORE:
                     item.one_liner = result.get("one_liner", "")
                     item.score = result.get("score", 0)
-                    logger.info(f"✅ KEPT [{result.get('score')}/10] ({model.split('/')[0]}) {item.title[:55]}")
+                    logger.info(f"KEPT [{result.get('score')}/10] ({model.split('/')[0]}) {item.title[:55]}")
                     return item, None
 
-                logger.info(f"❌ Dropped {item.title[:60]}")
+                logger.info(f"Dropped {item.title[:60]}")
                 return None, "llm_score"
 
             except Exception as e:

@@ -55,3 +55,31 @@ def setup_logging() -> None:
         format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+
+    for noisy in ["httpx", "httpcore", "groq._base_client", "urllib3"]:
+        logging.getLogger(noisy).setLevel(logging.WARNING)
+
+
+class SupaBaseLogHandler(logging.Handler):
+    def __init__(self, run_id: str):
+        super().__init__()
+        self.run_id = run_id
+        self._buffer: list[dict] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self._buffer.append({
+            "run_id": self.run_id,
+            "level": record.levelname,
+            "logger": record.name,
+            "message": self.format(record),
+        })
+
+    def flush_to_supabase(self) -> None:
+        if not self._buffer:
+            return
+        try:
+            from src.vector_store import get_client
+            get_client().table("logs").insert(self._buffer).execute()
+            self._buffer.clear()
+        except Exception as e:
+            print(f"Failed to flush logs to Supabase: {e}")

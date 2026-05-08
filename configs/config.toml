@@ -1,8 +1,23 @@
 [rss_sources]
 sources = [
-    { url = "https://rss.arxiv.org/rss/cs.AI", name = "Arxiv CS.AI" },
-    { url = "https://rss.arxiv.org/rss/cs.LG", name = "Arxiv CS.LG" },
+    # Model & Product releases
+    { url = "https://openai.com/blog/rss/", name = "OpenAI Blog" },
+    { url = "https://www.anthropic.com/rss.xml", name = "Anthropic Blog" },
+    { url = "https://blog.google/technology/ai/rss/", name = "Google AI Blog" },
+    { url = "https://mistral.ai/feed.xml", name = "Mistral Blog" },
     { url = "https://huggingface.co/blog/feed.xml", name = "HuggingFace Blog" },
+
+    # Applied AI & Engineering
+    { url = "https://simonwillison.net/atom/everything/", name = "Simon Willison" },
+    { url = "https://www.latent.space/feed", name = "Latent Space" },
+    { url = "https://www.interconnects.ai/feed", name = "Interconnects" },
+
+    # High-impact tech news
+    { url = "https://techcrunch.com/category/artificial-intelligence/feed/", name = "TechCrunch AI" },
+    { url = "https://feeds.arstechnica.com/arstechnica/technology-lab", name = "Ars Technica" },
+    { url = "https://venturebeat.com/category/ai/feed/", name = "VentureBeat AI" },
+
+    # Dev tools
     { url = "https://papers.takara.ai/api/feed", name = "HF Daily Papers" },
 ]
 
@@ -31,60 +46,73 @@ max_workers = 2
 min_score = 7
 temperature = 0.1
 max_tokens = 1024
+
 system_prompt = """
-You are a cynical senior ML engineer curating a digest for another senior engineer.
-Your reader cares deeply about: LLMs & language models, Computer Vision.
-Their content priority order is:
-1. Open source tools & libraries (repos, frameworks, SDKs with real code)
-2. New model releases (with architecture details or benchmarks, not just announcements)
-3. Benchmarks & evals (new leaderboards, reproducible comparisons)
-4. Research papers (novel contributions only, not incremental tweaks)
-5. Tutorials & guides (only if exceptionally practical and non-obvious)
+You are curating a digest for an AI Solutions Engineer — someone who builds and ships AI products professionally, not an academic researcher.
 
-You ruthlessly reject:
-- Hype with no technical substance ("X will change everything")
-- Political or social controversy dressed as tech news
-- Rehashed announcements or press releases
-- Opinion pieces with no new data, benchmark, or code
-- Hiring posts, events, hackathons, funding rounds
-- Anything unrelated to LLMs, language models, or computer vision
+Your reader wants:
+- New model releases with real capability improvements (not just benchmarks)
+- Open source tools, frameworks, SDKs they can use in production
+- AI engineering patterns: RAG, agents, evals, prompt engineering, deployment
+- Industry moves that affect the AI landscape (acquisitions, major launches, API changes)
+- Practical tutorials only if they cover non-obvious techniques
 
-Write one-liner summaries assuming a senior engineer audience — use precise technical
-terms, mention architecture names, benchmark names, and specific numbers when available.
-No hand-holding, no explaining basic concepts.
+Ruthlessly reject:
+- Academic papers with no practical application
+- Incremental research with no real-world impact
+- Hype without substance
+- Anything that reads like it belongs on Arxiv and nowhere else
+- Political drama, funding rounds, hiring posts
 
-Respond with JSON only, no markdown, no extra text:
-{"keep": true/false, "score": 1-10, "one_liner": "concise technical summary in 15 words or less"}
+Score 9-10: Ships today, changes how I work
+Score 7-8: Interesting, worth reading this week
+Score 1-6: Academic noise, drop it
+
+Respond with JSON only:
+{"keep": true/false, "score": 1-10, "one_liner": "what this means for someone building AI products, in 15 words or less"}
 """
 
 [prefilter]
 vip_keywords = ["qwen", "llama", "gemini", "mistral", "deepseek", "phi", "gpt", "claude"]
 keywords = [
-    "llm", "language model", "gpt", "transformer", "attention",
-    "computer vision", "image", "visual", "diffusion", "multimodal",
-    "open source", "github", "benchmark", "dataset", "model release",
-    "fine-tuning", "inference", "training", "paper", "research",
-    "embedding", "retrieval", "rag", "agent", "evaluation"
+    # Models & releases
+    "llm", "language model", "model release", "open source", "weights",
+    "gpt", "claude", "gemini", "llama", "mistral", "qwen", "deepseek",
+
+    # Engineering & tools
+    "rag", "agent", "mcp", "api", "sdk", "framework", "library",
+    "inference", "deployment", "fine-tuning", "quantization", "embedding",
+    "langchain", "llamaindex", "ollama", "vllm", "huggingface",
+
+    # Infrastructure & hardware
+    "nvidia", "gpu", "chip", "cuda", "tpu", "npu", "hardware accelerator",
+    "inference speed", "latency", "throughput",
+
+    # Applied AI
+    "multimodal", "vision", "audio", "code generation", "copilot",
+    "automation", "workflow", "production", "enterprise",
+
+    # Industry signals
+    "launch", "release", "announcement", "acquisition", "partnership",
+    "github", "benchmark", "leaderboard",
 ]
+
 blacklist = [
     "hiring", "job opening", "hackathon", "meetup", "event",
     "partnership", "funding", "series a", "acquisition", "ipo",
-    "we are excited to announce", "proud to share",
-    "self-promotion thread", "who's hiring", "monthly thread",
-    "weekly thread", "discussion thread", "stable diffusion", "midjourney", "dall-e", "text to image",
-    "image generation", "ai art", "comfyui", "lora training",
-    "dreambooth", "controlnet"
+    "we are excited to announce", "proud to share", "arxiv", "preprint",
+    "we propose", "we present a novel", "outperforms state-of-the-art",
+    "ablation study"
 ]
 max_age_hours = 24
-
 
 [models]
 qwen = "qwen/qwen3-32b"
 llama = "llama-3.3-70b-versatile"
 scout = "meta-llama/llama-4-scout-17b-16e-instruct"
-deepseek = "deepseek-r1-distill-llama-70b"
+llama8b = "llama-3.1-8b-instant"
 active = "qwen"
-fallback_order = ["qwen", "llama", "scout", "deepseek"]
+fallback_order = ["qwen", "llama", "scout", "llama8b"]
 
 [logging]
 level = "INFO"

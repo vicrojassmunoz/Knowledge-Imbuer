@@ -1,2 +1,2 @@
 
-from src.config import setup_logging
+from src.config import setup_logging, SupaBaseLogHandler

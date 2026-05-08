@@ -1,12 +1,13 @@
 import logging
 from time import time
 
-from src import setup_logging
+from src import setup_logging, SupaBaseLogHandler
 from src.fetcher import fetch_all
 from src.filter import filter_all, prefilter
 from src.vector_store import filter_seen, save_items
 from src.notifier import notify_all
 from src.stats import RunStats, create_run, finish_run
+
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -17,6 +18,12 @@ def main() -> None:
 
     start = time()
     stats = RunStats()
+
+    log_handler = SupaBaseLogHandler(run_id or "")
+    log_handler.setLevel(logging.INFO)
+    logging.getLogger("src").addHandler(log_handler)
+
+
     logger.info("Knowledge Imbuer starting...")
     logger.info(f"run_id from create_run: {run_id}")
 
@@ -62,6 +69,8 @@ def main() -> None:
         )
     else:
         logger.error("Notification failed — history not saved to avoid losing items")
+
+    log_handler.flush_to_supabase()
 
 
 if __name__ == "__main__":
